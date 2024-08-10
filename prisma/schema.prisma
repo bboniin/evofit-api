@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id              String          @id @default(uuid())
+  email           String          @unique
+  password        String
+  role            Role
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
+  client          Client?
+  professional    Professional?
+  space           Space?
+
+  @@map("users")
+}
+
+model Client {
+  id              String      @id @default(uuid())
+  userId          String      @unique
+  name            String
+  cpf             String
+  phoneNumber     String
+  photo           String?
+  objective       String
+  experienceLevel String
+  birthday        DateTime
+  user            User        @relation(fields: [userId], references: [id])
+
+  @@map("clients")
+}
+
+model Professional {
+  id                      String    @id @default(uuid())
+  userId                  String    @unique
+  name                    String
+  phoneNumber             String?
+  description             String?
+  cpf                     String
+  cref                    String
+  valueConsultancy        Float?
+  photo                   String?
+  birthday                DateTime
+  enableConsultancy       Boolean   @default(false)
+  descriptionConsultancy  String?
+  valueLesson             Float?
+  enableLesson            Boolean   @default(false)
+  descriptionLesson       String?
+  keyPix                  String?
+
+  photos                  PhotosProfessional[]
+  spaces                  ProfessionalSpace[]
+
+  user                    User     @relation(fields: [userId], references: [id])
+
+  @@map("professionals")
+}
+
+model Space {
+  id                    String                 @id @default(uuid()) 
+  userId                String?                @unique      
+  name                  String
+  description           String?
+  phoneNumber           String?
+  address               String?
+  city                  String?
+  state                 String?
+  zipCode               String?
+  complement            String?
+  neighborhood          String?
+  number                String?
+  photo                 String?
+  cnpj                  String?
+  mondayOperation       String?
+  tuesdayOperation      String?
+  wednesdayOperation    String?
+  thursdayOperation     String?
+  fridayOperation       String?
+  saturdayOperation     String?
+  sundayOperation       String?
+  latitude              Float
+  longitude             Float
+  valueDiarie           Float?
+  descriptionDiarie     String?
+  enableDiarie          Boolean                @default(false)
+  keyPix                String?
+    
+  photos                PhotosSpace[]
+  professionals         ProfessionalSpace[]
+    
+  user                  User?                  @relation(fields: [userId], references: [id])
+
+  @@map("spaces")
+}
+
+
+model PhotosProfessional {
+  id              String         @id @default(uuid())
+  userId          String         @unique
+  photo           String
+
+  professional    Professional   @relation(fields: [userId], references: [userId])
+
+  @@map("photosProfessional")
+}
+
+model PhotosSpace {
+  id              String      @id @default(uuid())
+  userId          String      @unique
+  photo           String
+
+  space           Space       @relation(fields: [userId], references: [userId])
+
+  @@map("photosSpace")
+}
+
+
+model ProfessionalSpace {
+  id              String         @id @default(uuid())
+  professionalId  String
+  spaceId         String        
+  professional    Professional   @relation(fields: [professionalId], references: [userId])
+  space           Space          @relation(fields: [spaceId], references: [id])
+
+  @@map("professionalSpace")
+}
+
+enum Role {
+  CLIENT
+  PROFESSIONAL
+  SPACE
+}
