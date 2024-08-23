@@ -1,20 +1,22 @@
 import { Request, Response } from 'express';
-import { CreateSpaceInitService } from '../../services/Professional/CreateSpaceInitService';
+import { EditSpaceInitService } from '../../services/Professional/EditSpaceInitService';
 
-class CreateSpaceInitController {
+class EditSpaceInitController {
     async handle(req: Request, res: Response) {
         const { name, latitude, longitude, description, city, state, zipCode, address, number, neighborhood, complement } = req.body
         
+        const { spaceId } = req.params
+
         let photo = ""
 
         if (req.file) {
             photo = req.file.filename
         }
 
-        const createSpaceInitService = new CreateSpaceInitService
+        const editSpaceInitService = new EditSpaceInitService
 
-        const space = await createSpaceInitService.execute({
-            name, latitude: Number(latitude), longitude: Number(longitude), photo, description,  city, state, zipCode, address, number, neighborhood, complement
+        const space = await editSpaceInitService.execute({
+            spaceId, name, latitude: Number(latitude), longitude: Number(longitude), photo, description,  city, state, zipCode, address, number, neighborhood, complement
         })
 
         if (space["photo"]) {
@@ -25,4 +27,4 @@ class CreateSpaceInitController {
     }
 }
 
-export { CreateSpaceInitController }
+export { EditSpaceInitController }

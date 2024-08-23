@@ -27,25 +27,16 @@ interface SpaceRequest {
     fridayOperation: string;
     saturdayOperation: string;
     sundayOperation: string;
+    keyPix: string;
+    typePix: string;
+    type: string;
 }
 
 class EditSpaceService {
-    async execute({ name, city, state, enableDiarie, descriptionDiarie, valueDiarie, zipCode, address, number, complement, phoneNumber, cnpj, latitude, longitude, description,
+    async execute({ name, city, keyPix, typePix, type, state, enableDiarie, descriptionDiarie, valueDiarie, zipCode, address, number, complement, phoneNumber, cnpj, latitude, longitude, description,
         photo, email, mondayOperation, tuesdayOperation, wednesdayOperation, thursdayOperation, fridayOperation, saturdayOperation, sundayOperation, userId }: SpaceRequest) {
 
-        if (email) {
-            const userAlreadyExists = await prismaClient.user.findFirst({
-                where: {
-                    email: email
-                }
-            })
-
-            if (userAlreadyExists) {
-                if (userAlreadyExists.id != userId) {
-                    throw new Error("Email já cadastrado")
-                }
-            }
-        }
+        let data = {}
 
         const user = await prismaClient.user.findUnique({
             where: {
@@ -66,29 +57,81 @@ class EditSpaceService {
             ...user.space
         }
 
-        let data = {
-            name: name || userData.name,
-            phoneNumber: phoneNumber || userData.phoneNumber,
-            cnpj: cnpj || userData.cnpj,
-            description: description || userData.description,
-            valueDiarie: valueDiarie || userData.valueDiarie,
-            enableDiarie: enableDiarie || userData.enableDiarie,
-            descriptionDiarie: descriptionDiarie || userData.descriptionDiarie,
-            latitude: latitude || userData.latitude,
-            longitude: longitude || userData.longitude,
-            state: state || userData.state,
-            city: city || userData.city,
-            zipCode: zipCode || userData.zipCode,
-            number: number || userData.number,
-            complement: complement || userData.complement,
-            address: address || userData.address,
-            mondayOperation: mondayOperation || userData.mondayOperation,
-            tuesdayOperation: tuesdayOperation || userData.tuesdayOperation,
-            wednesdayOperation: wednesdayOperation || userData.wednesdayOperation,
-            thursdayOperation: thursdayOperation || userData.thursdayOperation,
-            fridayOperation: fridayOperation || userData.fridayOperation,
-            saturdayOperation: saturdayOperation || userData.saturdayOperation,
-            sundayOperation: sundayOperation || userData.sundayOperation,
+
+        if(type == "account"){ 
+            if (email) {
+                const userAlreadyExists = await prismaClient.user.findFirst({
+                    where: {
+                        email: email
+                    }
+                })
+    
+                if (userAlreadyExists) {
+                    if (userAlreadyExists.id != userId) {
+                        throw new Error("Email já cadastrado")
+                    }
+                }
+            }
+            data = {
+                name: name || userData.name,
+                phoneNumber: phoneNumber || userData.phoneNumber,
+                cnpj: cnpj || userData.cnpj,
+            }
+        }
+
+
+        if(type == "profile"){
+            if(!description || (!photo && !userData.photo)){
+                throw new Error("Foto de perfil e descrição são obrigatórios")
+            }
+            data = {
+                description: description || userData.description,
+                finishProfile: true
+            }
+        }
+
+        if(type == "bank"){
+            if(!enableDiarie || !valueDiarie || !descriptionDiarie || !keyPix || !typePix){
+                throw new Error("Ative a Diaria e preencha todos os campos")
+            }
+            data = {
+                valueDiarie: valueDiarie,
+                enableDiarie: enableDiarie,
+                descriptionDiarie: descriptionDiarie,
+                keyPix: keyPix,
+                typePix: typePix,
+                finishBank: true
+            }
+        }
+
+        if(type == "address"){
+            if(!latitude || !longitude || !state || !city || !zipCode || !number || !address){
+                throw new Error("Preencha todos os campos obrigatórios")
+            }
+            data = {
+                latitude: latitude,
+                longitude: longitude,
+                state: state,
+                city: city,
+                zipCode: zipCode,
+                number: number,
+                complement: complement,
+                address: address,
+                finishAddress: true
+            }
+        }
+
+        if(type == "time"){
+            data = {
+                mondayOperation: mondayOperation,
+                tuesdayOperation: tuesdayOperation,
+                wednesdayOperation: wednesdayOperation,
+                thursdayOperation: thursdayOperation,
+                fridayOperation: fridayOperation,
+                saturdayOperation: saturdayOperation,
+                sundayOperation: sundayOperation,
+                finishTime: true
+            }
         }
 
         if (photo) {

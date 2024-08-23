@@ -24,6 +24,15 @@ class PhotoAddProfessionalService {
             },
         })
 
+        await prismaClient.professional.update({
+            where: {
+                userId: userId,
+            },
+            data: {
+                finishPhotos: true
+            },
+        })
+
         return (photoProfessional)
     }
 }

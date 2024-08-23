@@ -2,7 +2,7 @@ import prismaClient from '../../prisma'
 import S3Storage from '../../utils/S3Storage';
 
 interface ProfessionalRequest {
-    name,
+    name: string;
     photo: string;
     phoneNumber: string;
     email: string;
@@ -18,26 +18,15 @@ interface ProfessionalRequest {
     enableLesson: boolean;
     descriptionLesson: string;
     keyPix: string;
+    typePix: string;
+    type: string;
 }
 
 class EditProfessionalService {
     async execute({ name, birthday, phoneNumber, photo, email, cref, description, valueConsultancy, userId,
-        enableConsultancy, descriptionConsultancy, valueLesson, enableLesson, keyPix, descriptionLesson, cpf }: ProfessionalRequest) {
+        enableConsultancy, typePix, type, descriptionConsultancy, valueLesson, enableLesson, keyPix, descriptionLesson, cpf }: ProfessionalRequest) {
 
-        if (email) {
-            const userAlreadyExists = await prismaClient.user.findFirst({
-                where: {
-                    email: email
-                }
-            })
-
-            if (userAlreadyExists) {
-                if (userAlreadyExists.id != userId) {
-                    throw new Error("Email já cadastrado")
-                }
-            }
-        }
-        
+        let data = {}
 
         const user = await prismaClient.user.findUnique({
             where: {
@@ -58,20 +47,63 @@ class EditProfessionalService {
             ...user.professional
         }
 
-        let data = {
-            name: name || userData.name,
-            birthday: birthday ? new Date(birthday) : userData.birthday,
-            phoneNumber: phoneNumber || userData.phoneNumber,
-            cref: cref || userData.cref,
-            description: description || userData.description,
-            valueConsultancy: valueConsultancy || userData.valueConsultancy,
-            enableConsultancy: enableConsultancy || userData.enableConsultancy,
-            descriptionConsultancy: descriptionConsultancy || userData.descriptionConsultancy,
-            valueLesson: valueLesson || userData.valueLesson,
-            enableLesson: enableLesson || userData.enableLesson,
-            cpf: cpf || userData.cpf,
-            descriptionLesson: descriptionLesson || userData.descriptionLesson,
-            keyPix: keyPix || userData.keyPix,
+        if(type == "account"){        
+            if (email) {
+                const userAlreadyExists = await prismaClient.user.findFirst({
+                    where: {
+                        email: email
+                    }
+                })
+    
+                if (userAlreadyExists) {
+                    if (userAlreadyExists.id != userId) {
+                        throw new Error("Email já cadastrado")
+                    }
+                }
+            }
+            data = {
+                name: name || userData.name,
+                birthday: birthday ? new Date(birthday) : userData.birthday,
+                phoneNumber: phoneNumber || userData.phoneNumber,
+                cref: cref || userData.cref,
+                cpf: cpf || userData.cpf,
+            }
+        }
+
+        if(type == "profile"){
+            if(!description || (!photo && !userData.photo)){
+                throw new Error("Foto de perfil e descrição são obrigatórios")
+            }
+            data = {
+                description: description || userData.description,
+                finishProfile: true
+            }
+        }
+
+        if(type == "bank"){
+            if(!enableLesson && !enableConsultancy){
+                throw new Error("Ative pelo menos um serviço")
+            }
+            if(!keyPix || !typePix){
+                throw new Error("Preencha o tipo e chave PIX")
+            }
+            if(enableLesson && (!valueLesson || !descriptionLesson)){
+                throw new Error("Preencha valor e descrição da aula individual")
+            }
+            if(enableConsultancy && (!valueConsultancy || !descriptionConsultancy)){
+                throw new Error("Preencha valor e descrição da aula individual")
+            }
+            data = {
+                valueConsultancy: valueConsultancy,
+                enableConsultancy: enableConsultancy,
+                descriptionConsultancy: descriptionConsultancy,
+                valueLesson: valueLesson,
+                enableLesson: enableLesson,
+                descriptionLesson: descriptionLesson,
+                keyPix: keyPix,
+                typePix: typePix,
+                finishBank: true
+            }
         }
 
         if (photo) {

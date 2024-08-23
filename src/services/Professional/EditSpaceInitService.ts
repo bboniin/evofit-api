@@ -14,13 +14,24 @@ interface SpaceRequest {
     address: string;
     number: string;
     complement: string;
+    spaceId: string;
 }
 
-class CreateSpaceInitService {
-    async execute({ name, latitude, longitude, photo, description, city, state, neighborhood, number, address, zipCode, complement }: SpaceRequest) {
+class EditSpaceInitService {
+    async execute({ name, spaceId, latitude, city, state, neighborhood, number, address, zipCode, complement, longitude, photo, description }: SpaceRequest) {
+
+        const space = await prismaClient.space.findUnique({
+            where: {
+                id: spaceId
+            }
+        })
+
+        if (!space) {
+            throw new Error("Espaço não encontrado")
+        }
 
         if (!name || !latitude || !longitude) {
-            throw new Error("Todos os campos são obrigatórios")
+            throw new Error("Nome, Latitude e Longitude são obrigatórios")
         }
 
         let data = {
@@ -34,8 +45,7 @@ class CreateSpaceInitService {
             neighborhood: neighborhood,
             address: address,
             number: number,
-            complement: complement,
-            userId: null
+            complement: complement
         }
 
         if (photo) {
@@ -44,14 +54,21 @@ class CreateSpaceInitService {
             const upload = await s3Storage.saveFile(photo)
 
             data["photo"] = upload
+
+            if (space.photo) {
+                await s3Storage.deleteFile(space.photo)
+            }
         }
 
-        const space = await prismaClient.space.create({
+        const spaceEdit = await prismaClient.space.update({
+            where: {
+                id: spaceId
+            },
             data
         })
 
-        return (space)
+        return (spaceEdit)
     }
 }
 
-export { CreateSpaceInitService }
+export { EditSpaceInitService }

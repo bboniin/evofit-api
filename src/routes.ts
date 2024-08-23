@@ -25,6 +25,7 @@ import { LinkProfessionalSpaceController } from './controllers/Professional/Link
 import { CreateSpaceInitController } from './controllers/Professional/CreateSpaceInitController'
 import { ListLinkedSpacesController } from './controllers/Professional/ListLinkedSpacesController'
 import { RemoveLinkedSpaceController } from './controllers/Professional/RemoveLinkedSpaceController copy'
+import { EditSpaceInitController } from './controllers/Professional/EditSpaceInitController'
 
 const upload = multer(uploadConfig)
 
@@ -46,6 +47,7 @@ router.get('/users', new GetUserController().handle)
 router.put('/users/password', new EditPasswordUserController().handle)
 
 router.post('/space/init', upload.single("file"), new CreateSpaceInitController().handle)
+router.put('/space/init/:spaceId', upload.single("file"), new EditSpaceInitController().handle)
 router.get('/professional/linked/spaces', new ListLinkedSpacesController().handle)
 router.post('/professional/linked/:spaceId', new LinkProfessionalSpaceController().handle)
 router.delete('/professional/linked/:id', new RemoveLinkedSpaceController().handle)

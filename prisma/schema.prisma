@@ -44,8 +44,8 @@ model Client {
 }
 
 model Professional {
-  id                      String    @id @default(uuid())
-  userId                  String    @unique
+  id                      String      @id @default(uuid())
+  userId                  String      @unique
   name                    String
   phoneNumber             String?
   description             String?
@@ -54,24 +54,28 @@ model Professional {
   valueConsultancy        Float?
   photo                   String?
   birthday                DateTime
-  enableConsultancy       Boolean   @default(false)
+  enableConsultancy       Boolean     @default(false)
   descriptionConsultancy  String?
   valueLesson             Float?
-  enableLesson            Boolean   @default(false)
+  enableLesson            Boolean     @default(false)
   descriptionLesson       String?
   keyPix                  String?
+  typePix                 String?
+  finishBank              Boolean     @default(false)
+  finishPhotos            Boolean     @default(false)
+  finishProfile           Boolean     @default(false)
 
   photos                  PhotosProfessional[]
   spaces                  ProfessionalSpace[]
 
-  user                    User     @relation(fields: [userId], references: [id])
+  user                    User        @relation(fields: [userId], references: [id])
 
   @@map("professionals")
 }
 
 model Space {
-  id                    String                 @id @default(uuid()) 
-  userId                String?                @unique      
+  id                    String      @id @default(uuid()) 
+  userId                String?     @unique      
   name                  String
   description           String?
   phoneNumber           String?
@@ -95,9 +99,15 @@ model Space {
   longitude             Float
   valueDiarie           Float?
   descriptionDiarie     String?
-  enableDiarie          Boolean                @default(false)
+  enableDiarie          Boolean     @default(false)
   keyPix                String?
-    
+  typePix               String?
+  finishBank            Boolean     @default(false)
+  finishPhotos          Boolean     @default(false)
+  finishProfile         Boolean     @default(false)
+  finishAddress         Boolean     @default(false)
+  finishTime            Boolean     @default(false)
+
   photos                PhotosSpace[]
   professionals         ProfessionalSpace[]
     
