@@ -26,6 +26,27 @@ import { CreateSpaceInitController } from './controllers/Professional/CreateSpac
 import { ListLinkedSpacesController } from './controllers/Professional/ListLinkedSpacesController'
 import { RemoveLinkedSpaceController } from './controllers/Professional/RemoveLinkedSpaceController copy'
 import { EditSpaceInitController } from './controllers/Professional/EditSpaceInitController'
+import { PhotoEditSpaceController } from './controllers/Space/PhotoEditSpaceController'
+import { PhotoEditProfessionalController } from './controllers/Professional/PhotoEditProfessionalController'
+import { PhotoListSpaceController } from './controllers/Space/PhotoListSpaceController'
+import { PhotoListProfessionalController } from './controllers/Professional/PhotoListProfessionalController'
+import { CreateClientProfessionalController } from './controllers/ClientProfessional/CreateClientProfessionalController'
+import { EditClientProfessionalController } from './controllers/ClientProfessional/EditClientProfessionalController'
+import { ListClientsProfessionalController } from './controllers/ClientProfessional/ListClientsProfessionalController'
+import { GetClientProfessionalController } from './controllers/ClientProfessional/GetClientProfessionalController'
+import { DeleteClientProfessionalController } from './controllers/ClientProfessional/DeleteClientProfessionalController'
+import { DeleteScheduleProfessionalController } from './controllers/Schedule/DeleteScheduleProfessionalService'
+import { DayScheduleProfessionalController } from './controllers/Schedule/DayScheduleProfessionalService'
+import { ListScheduleProfessionalController } from './controllers/Schedule/ListScheduleProfessionalService copy 2'
+import { EditScheduleProfessionalController } from './controllers/Schedule/EditScheduleProfessionalController'
+import { CreateBookingController } from './controllers/Booking/CreateBookingController'
+import { MyBookingController } from './controllers/Booking/MyBookingController'
+import { FrequencyBookingController } from './controllers/Booking/FrequencyBookingController'
+import { DayWeekScheduleProfessionalController } from './controllers/Schedule/DayWeekScheduleProfessionalService'
+import { ClassesScheduleProfessionalController } from './controllers/Schedule/ClassesScheduleProfessionalController'
+import { BlocksScheduleProfessionalController } from './controllers/Schedule/BlocksScheduleProfessionalController'
+import { CreateBlockScheduleProfessionalController } from './controllers/Schedule/CreateBlockScheduleProfessionalController'
+import { EditBlockScheduleProfessionalController } from './controllers/Schedule/EditBlockScheduleProfessionalController'
 
 const upload = multer(uploadConfig)
 
@@ -34,8 +55,8 @@ const router = Router()
 router.post('/sessions', new AuthUserController().handle)
 
 router.get('/spaces/all', new ListSpacesController().handle)
-router.get('/space/:spaceId', new GetSpaceController().handle)
-router.get('/professional/:professionalId', new GetProfessionalController().handle)
+router.get('/space/p/:spaceId', new GetSpaceController().handle)
+router.get('/professional/p/:professionalId', new GetProfessionalController().handle)
 
 router.post('/client', new CreateClientController().handle)
 router.post('/space', upload.single("file"), new CreateSpaceController().handle)
@@ -52,15 +73,42 @@ router.get('/professional/linked/spaces', new ListLinkedSpacesController().handl
 router.post('/professional/linked/:spaceId', new LinkProfessionalSpaceController().handle)
 router.delete('/professional/linked/:id', new RemoveLinkedSpaceController().handle)
 
-
 router.put('/client', upload.single("file"), new EditClientController().handle)
 router.put('/space', upload.single("file"), new EditSpaceController().handle)
 router.put('/professional', upload.single("file"), new EditProfessionalController().handle)
 
+router.get('/photos/space', new PhotoListSpaceController().handle)
+router.get('/photos/professional', new PhotoListProfessionalController().handle)
+
 router.post('/space/photo', upload.single("file"), new PhotoAddSpaceController().handle)
 router.post('/professional/photo', upload.single("file"), new PhotoAddProfessionalController().handle)
 
+router.put('/space/photo/:id', upload.single("file"), new PhotoEditSpaceController().handle)
+router.put('/professional/photo/:id', upload.single("file"), new PhotoEditProfessionalController().handle)
+
 router.delete('/space/photo/:id', new PhotoRemoveSpaceController().handle)
 router.delete('/professional/photo/:id', new PhotoRemoveProfessionalController().handle)
+
+router.post('/professional/client', new CreateClientProfessionalController().handle)
+router.put('/professional/client/:clientId', new EditClientProfessionalController().handle)
+router.get('/professional/client/:id', new GetClientProfessionalController().handle)
+router.get('/professional/clients', new ListClientsProfessionalController().handle)
+router.delete('/professional/client/:clientId', new DeleteClientProfessionalController().handle)
+
+router.post('/schedule', new EditScheduleProfessionalController().handle)
+router.get('/schedule', new ListScheduleProfessionalController().handle)
+router.get('/schedule/date/:professionalId', new DayScheduleProfessionalController().handle)
+router.get('/schedule/classes', new ClassesScheduleProfessionalController().handle)
+router.get('/schedule/blocks', new BlocksScheduleProfessionalController().handle)
+router.post('/schedule/block', new CreateBlockScheduleProfessionalController().handle)
+router.put('/schedule/block/:blockId', new EditBlockScheduleProfessionalController().handle)
+router.get('/schedule/:dayWeek', new DayWeekScheduleProfessionalController().handle)
+router.delete('/schedule/:scheduleId', new DeleteScheduleProfessionalController().handle)
+router.delete('/schedule/block/:blockId', new EditBlockScheduleProfessionalController().handle)
+
+router.post('/booking', new CreateBookingController().handle)
+router.get('/client/schedule', new MyBookingController().handle)
+router.get('/client/frequency', new FrequencyBookingController().handle)
+
 
 export { router }

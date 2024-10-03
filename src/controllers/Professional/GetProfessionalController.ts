@@ -16,6 +16,12 @@ class GetProfessionalController {
             professional["photo_url"] = "https://evofit-data.s3.us-east-1.amazonaws.com/" + professional["photo"];
         }
 
+        professional.photos.map((item)=>{
+            if (item["photo"]) {
+                item["photo_url"] = "https://evofit-data.s3.us-east-1.amazonaws.com/" + item["photo"];
+            }
+        })
+
         return res.json(professional)
     }
 }

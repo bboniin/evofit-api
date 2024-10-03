@@ -16,6 +16,27 @@ interface ClientRequest {
 class EditClientService {
     async execute({ name, birthday, phoneNumber, cpf, objective, experienceLevel, photo, email, userId }: ClientRequest) {
 
+        let data = {}
+
+        const user = await prismaClient.user.findUnique({
+            where: {
+                id: userId,
+                role: "CLIENT"
+            },
+            include: {
+                client: true
+            }
+        })
+
+        if (!user) {
+            throw new Error("Usuário não encontrado")
+        }
+
+        const userData = {
+            email: user.email,
+            ...user.client
+        }
+ 
         if (email) {
             const userAlreadyExists = await prismaClient.user.findFirst({
                 where: {
@@ -29,35 +50,16 @@ class EditClientService {
                 }
             }
         }
-        
-        const user = await prismaClient.user.findUnique({
-            where: {
-                id: userId,
-                role: "CLIENT"
-            },
-            include: {
-                client: true
-            }
 
-        })
-
-        if (!user) {
-            throw new Error("Usuário não encontrado")
-        }
-
-        const userData = {
-            email: user.email,
-            ...user.client
-        }
-
-        let data = {
+        data = {
             name: name || userData.name,
             birthday: birthday ? new Date(birthday) : userData.birthday,
-            cpf: cpf || userData.cpf,
             phoneNumber: phoneNumber || userData.phoneNumber,
             objective: objective || userData.objective,
-            experienceLevel: experienceLevel || userData.experienceLevel
+            experienceLevel: experienceLevel || userData.experienceLevel,
+            cpf: cpf || userData.cpf,
         }
+
 
         if (photo) {
             const s3Storage = new S3Storage()

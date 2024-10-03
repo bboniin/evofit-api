@@ -4,14 +4,14 @@ import { PhotoRemoveSpaceService } from '../../services/Space/PhotoRemoveSpaceSe
 class PhotoRemoveSpaceController {
     async handle(req: Request, res: Response) {
 
-        const { photoId } = req.params
+        const { id } = req.params
 
         let userId = req.userId
 
         const photoRemoveSpaceService = new PhotoRemoveSpaceService
 
         const photoSpace = await photoRemoveSpaceService.execute({
-            photoId, userId
+            id, userId
         })
 
         if (photoSpace["photo"]) {

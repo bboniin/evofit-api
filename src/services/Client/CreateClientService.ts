@@ -1,6 +1,5 @@
 import { hash } from 'bcryptjs';
 import prismaClient from '../../prisma'
-import S3Storage from '../../utils/S3Storage';
 import { sign } from 'jsonwebtoken'
 import authConfig from "../../utils/auth"
 
@@ -17,10 +16,10 @@ interface ClientRequest {
 }
 
 class CreateClientService {
-    async execute({ name, password, birthday, phoneNumber, cpf, objective, experienceLevel, photo, email }: ClientRequest) {
+    async execute({ name, password, birthday, phoneNumber, cpf, objective, experienceLevel, email }: ClientRequest) {
 
         if (!name || !phoneNumber || !password || !cpf || !objective || !experienceLevel || !email || !birthday) {
-            throw new Error("Todos os campos são obrigatórios")
+            throw new Error("Preencha todos os campos obrigatórios")
         }
 
         const userAlreadyExists = await prismaClient.user.findFirst({
@@ -45,14 +44,6 @@ class CreateClientService {
             photo: ""
         }
 
-        if (photo) {
-            const s3Storage = new S3Storage()
-
-            const upload = await s3Storage.saveFile(photo)
-
-            data["photo"] = upload
-        }
-
         const user = await prismaClient.user.create({
             data: {
                 email: email,
@@ -63,11 +54,31 @@ class CreateClientService {
 
         const client = await prismaClient.client.create({
             data: {
+                id: user.id,
                 userId: user.id,
                 ...data
             }
         })
 
+        const clients = await prismaClient.clientsProfessional.findMany({
+            where: {
+                email: email,
+                clientId: null
+            }
+        })
+
+        await Promise.all(
+            clients.map(async (item)=>{
+                await prismaClient.clientsProfessional.update({
+                    where: {
+                        id: item.id
+                    },
+                    data: {
+                        clientId: user.id
+                    }
+                })    
+            })
+        )
 
         const token = sign({
             email: user.email,

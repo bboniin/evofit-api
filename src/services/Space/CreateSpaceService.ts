@@ -76,6 +76,7 @@ class CreateSpaceService {
 
         const space = await prismaClient.space.create({
             data: {
+                id: user.id,
                 userId: user.id,
                 ...data
             }

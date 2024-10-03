@@ -63,6 +63,7 @@ class CreateProfessionalService {
 
         const professional = await prismaClient.professional.create({
             data: {
+                id: user.id,
                 userId: user.id,
                 ...data
             }

@@ -2,16 +2,16 @@ import prismaClient from '../../prisma'
 import S3Storage from '../../utils/S3Storage';
 
 interface SpaceRequest {
-    photoId: string;
+    id: string;
     userId: string;
 }
 
 class PhotoRemoveSpaceService {
-    async execute({ photoId, userId }: SpaceRequest) {
+    async execute({ id, userId }: SpaceRequest) {
 
         const photo = await prismaClient.photosSpace.findUnique({
             where: {
-                id: photoId,
+                id: id,
                 userId: userId
             }
         })
@@ -26,7 +26,7 @@ class PhotoRemoveSpaceService {
 
         await prismaClient.photosSpace.delete({
             where: {
-                id: photoId,
+                id: id,
             },
         })
 

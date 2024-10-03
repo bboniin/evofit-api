@@ -8,7 +8,7 @@ const app = express()
 app.use(express.json())
 
 app.use(cors({
-    origin: ['http://localhost:3333']
+    origin: ['https://api.evofitapp.com.br/']
 }))
 
 app.use(router)
@@ -24,5 +24,5 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 })
 
 app.listen(3333, () => {
-    console.log(`rodando v1.0.1`)
+    console.log(`rodando v1.0.2`)
 }) 

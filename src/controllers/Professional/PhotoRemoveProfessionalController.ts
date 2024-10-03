@@ -4,14 +4,14 @@ import { PhotoRemoveProfessionalService } from '../../services/Professional/Phot
 class PhotoRemoveProfessionalController {
     async handle(req: Request, res: Response) {
 
-        const { photoId } = req.params
+        const { id } = req.params
 
         let userId = req.userId
 
         const photoRemoveProfessionalService = new PhotoRemoveProfessionalService
 
         const photoProfessional = await photoRemoveProfessionalService.execute({
-            photoId, userId
+            id, userId
         })
 
         if (photoProfessional["photo"]) {
