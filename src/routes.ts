@@ -47,6 +47,8 @@ import { ClassesScheduleProfessionalController } from './controllers/Schedule/Cl
 import { BlocksScheduleProfessionalController } from './controllers/Schedule/BlocksScheduleProfessionalController'
 import { CreateBlockScheduleProfessionalController } from './controllers/Schedule/CreateBlockScheduleProfessionalController'
 import { EditBlockScheduleProfessionalController } from './controllers/Schedule/EditBlockScheduleProfessionalController'
+import { ListChatsController } from './controllers/Chat/ListChatsController'
+import { GetChatController } from './controllers/Chat/GetChatController'
 
 const upload = multer(uploadConfig)
 
@@ -109,6 +111,9 @@ router.delete('/schedule/block/:blockId', new EditBlockScheduleProfessionalContr
 router.post('/booking', new CreateBookingController().handle)
 router.get('/client/schedule', new MyBookingController().handle)
 router.get('/client/frequency', new FrequencyBookingController().handle)
+
+router.get('/chats', new ListChatsController().handle)
+router.get('/chat/:recipientId', new GetChatController().handle)
 
 
 export { router }

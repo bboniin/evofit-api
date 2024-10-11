@@ -15,23 +15,23 @@ datasource db {
 
 
 model User {
-  id              String          @id @default(uuid())
-  email           String          @unique
-  password        String
-  role            Role
-  client          Client?
-  professional    Professional?
-  space           Space?
+  id                     String                       @id @default(uuid())
+  email                  String                       @unique
+  password               String
+  role                   Role
+  client                 Client?
+  professional           Professional?
+  space                  Space?
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt @default(now())
+  createdAt              DateTime                     @default(now())
+  updatedAt              DateTime                     @updatedAt @default(now())
 
   @@map("users")
 }
 
 model Client {
-  id                     String         @id @default(uuid())
-  userId                 String         @unique
+  id                     String                       @id @default(uuid())
+  userId                 String                       @unique
   name                   String
   cpf                    String
   phoneNumber            String
@@ -39,38 +39,37 @@ model Client {
   objective              String
   experienceLevel        String
   birthday               DateTime
-  user                   User?          @relation(fields: [userId], references: [id])
+  user                   User?                        @relation(fields: [userId], references: [id])
 
   bookings               Booking[]
   clientsProfessional    ClientsProfessional[]
+  chats                  Chat[]       
 
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt @default(now())
+  createdAt              DateTime                     @default(now())
+  updatedAt              DateTime                     @updatedAt @default(now())
 
   @@map("clients")
 }
 
 model Professional {
-  id                      String                 @id @default(uuid())
-  userId                  String                 @unique
+  id                      String                      @id @default(uuid())
+  userId                  String                      @unique
   name                    String
   phoneNumber             String?
   description             String?
-  cpf                     String
-  cref                    String
-  valueConsultancy        Float?
+  cpf                     String 
+  cref                    String 
+  valueConsultancy        Float? 
   photo                   String?
-  birthday                DateTime
-  enableConsultancy       Boolean                @default(false)
+  birthday                DateTime      
+  enableConsultancy       Boolean                     @default(false)
   descriptionConsultancy  String?
-  valueLesson             Float?
-  enableLesson            Boolean                @default(false)
-  descriptionLesson       String?
+  valueLesson             Float? 
+  enableLesson            Boolean                     @default(false)
   keyPix                  String?
   typePix                 String?
-  finishBank              Boolean                @default(false)
-  finishPhotos            Boolean                @default(false)
-  finishProfile           Boolean                @default(false)
+  finishBank              Boolean                     @default(false)
+  finishProfile           Boolean                     @default(false)
 
   clientsProfessional     ClientsProfessional[]
   photos                  PhotosProfessional[]
@@ -78,98 +77,98 @@ model Professional {
   workSchedules           WorkSchedule[]
   schedules               Schedule[]
   bookings                Booking[]
+  chats                   Chat[]       
 
-  user                    User                   @relation(fields: [userId], references: [id])
+  user                    User                        @relation(fields: [userId], references: [id])
 
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt @default(now())
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("professionals")
 }
 
 model Space {
-  id                    String                @id @default(uuid()) 
-  userId                String?               @unique      
-  name                  String
-  description           String?
-  phoneNumber           String?
-  address               String?
-  city                  String?
-  state                 String?
-  zipCode               String?
-  complement            String?
-  neighborhood          String?
-  number                String?
-  photo                 String?
-  cnpj                  String?
-  mondayOperation       String?
-  tuesdayOperation      String?
-  wednesdayOperation    String?
-  thursdayOperation     String?
-  fridayOperation       String?
-  saturdayOperation     String?
-  sundayOperation       String?
-  latitude              Float
-  longitude             Float
-  valueDiarie           Float?
-  descriptionDiarie     String?
-  enableDiarie          Boolean               @default(false)
-  keyPix                String?
-  typePix               String?
-  finishBank            Boolean               @default(false)
-  finishPhotos          Boolean               @default(false)
-  finishProfile         Boolean               @default(false)
-  finishAddress         Boolean               @default(false)
-  finishTime            Boolean               @default(false)
+  id                      String                      @id @default(uuid()) 
+  userId                  String?                     @unique      
+  name                    String
+  description             String?
+  phoneNumber             String?
+  address                 String?
+  city                    String?
+  state                   String?
+  zipCode                 String?
+  complement              String?
+  neighborhood            String?
+  number                  String?
+  photo                   String?
+  cnpj                    String?
+  mondayOperation         String?
+  tuesdayOperation        String?
+  wednesdayOperation      String?
+  thursdayOperation       String?
+  fridayOperation         String?
+  saturdayOperation       String?
+  sundayOperation         String?
+  latitude                Float
+  longitude               Float
+  valueDiarie             Float?
+  descriptionDiarie       String?
+  enableDiarie            Boolean                     @default(false)
+  keyPix                  String?
+  typePix                 String?
+  finishBank              Boolean                     @default(false)
+  finishProfile           Boolean                     @default(false)
+  finishAddress           Boolean                     @default(false)
+  finishTime              Boolean                     @default(false)
 
-  photos                PhotosSpace[]
-  professionals         ProfessionalSpace[]
-    
-  user                  User?                 @relation(fields: [userId], references: [id])
+  photos                  PhotosSpace[]       
+  professionals           ProfessionalSpace[]       
 
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt @default(now())
+  user                    User?                       @relation(fields: [userId], references: [id])
+
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("spaces")
 }
 
 model PhotosProfessional {
-  id              String         @id @default(uuid())
-  userId          String         
-  photo           String
+  id                      String                      @id @default(uuid())
+  userId                  String                         
+  photo                   String                 
 
-  professional    Professional   @relation(fields: [userId], references: [userId])
+  professional            Professional                @relation(fields: [userId], references: [userId])
 
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt @default(now())
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("photosProfessional")
 }
 
 model PhotosSpace {
-  id              String       @id @default(uuid())
-  userId          String      
-  photo           String
+  id                      String                      @id @default(uuid())
+  userId                  String                         
+  photo                   String                   
 
-  space           Space        @relation(fields: [userId], references: [userId])
+  space                   Space                       @relation(fields: [userId], references: [userId])
 
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt @default(now())
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("photosSpace")
 }
 
 model WorkSchedule {
-  id              String          @id @default(uuid())
-  professionalId  String
-  dayOfWeek       Int         
-  startTime       String      
-  endTime         String      
+  id                      String                      @id @default(uuid())
+  professionalId          String               
+  dayOfWeek               Int                             
+  startTime               String                     
+  endTime                 String                     
 
-  professional    Professional    @relation(fields: [professionalId], references: [id])
+  professional            Professional                @relation(fields: [professionalId], references: [id])
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt 
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt 
 
   @@unique([professionalId, dayOfWeek])
 
@@ -177,21 +176,21 @@ model WorkSchedule {
 }
 
 model Schedule {
-  id                      String         @id @default(uuid())
+  id                      String                      @id @default(uuid())
   professionalId          String
   clientProfessionalId    String?
   dayOfWeek               Int 
   recurring               Boolean 
   isBlock                 Boolean              
-  startTime               String      
-  endTime                 String      
+  startTime               String 
+  endTime                 String 
   date                    DateTime       
 
   clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id])
   professional            Professional                @relation(fields: [professionalId], references: [id])
 
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt 
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt 
 
   @@unique([professionalId, clientProfessionalId, dayOfWeek])
 
@@ -199,61 +198,89 @@ model Schedule {
 }
 
 model Booking {
-  id                String          @id @default(uuid())
-  professionalId    String
-  clientId          String
-  startTime         String       
-  endTime           String      
-  date              DateTime              
-  scheduleId        String?
-  orderId           String?        
+  id                      String                      @id @default(uuid())
+  professionalId          String
+  clientId                String
+  startTime               String  
+  endTime                 String 
+  date                    DateTime              
+  scheduleId              String?
+  orderId                 String?   
 
-  client            Client          @relation(fields: [clientId], references: [id])
-  professional      Professional    @relation(fields: [professionalId], references: [id])
+  client                  Client                      @relation(fields: [clientId], references: [id])
+  professional            Professional                @relation(fields: [professionalId], references: [id])
 
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
 
   @@map("bookings")
 }
 
 model ProfessionalSpace {
-  id              String          @id @default(uuid())
-  professionalId  String
-  spaceId         String        
-  professional    Professional    @relation(fields: [professionalId], references: [userId])
-  space           Space           @relation(fields: [spaceId], references: [id])
+  id                      String                      @id @default(uuid())
+  professionalId          String               
+  spaceId                 String                       
+  professional            Professional                @relation(fields: [professionalId], references: [userId])
+  space                   Space                       @relation(fields: [spaceId], references: [id])
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt @default(now())
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("professionalSpace")
 }
 
 model ClientsProfessional {
-  id                String          @id @default(uuid())
-  email             String
-  phoneNumber       String  
-  name              String  
-  status            String  
-  dayDue            String 
-  datePayment       DateTime        @default(now()) 
-  academy           String  
-  value             Float         
-  professionalId    String
-  clientId          String?        
-  professional      Professional    @relation(fields: [professionalId], references: [userId])
-  client            Client?         @relation(fields: [clientId], references: [id])
+  id                      String                      @id @default(uuid())
+  email                   String
+  phoneNumber             String  
+  name                    String  
+  status                  String  
+  dayDue                  String 
+  datePayment             DateTime                    @default(now()) 
+  academy                 String  
+  value                   Float         
+  professionalId          String
+  clientId                String?   
+  professional            Professional                @relation(fields: [professionalId], references: [userId])
+  client                  Client?                     @relation(fields: [clientId], references: [id])
 
-  schedules         Schedule[]
+  schedules               Schedule[]                  
 
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt @default(now())
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
 
   @@unique([professionalId, email])
 
   @@map("clientsProfessional")
 }
+
+model Chat {
+  id                      String                      @id @default(uuid())
+  clientId                String
+  professionalId          String
+  client                  Client                      @relation(fields: [clientId], references: [id])
+  professional            Professional                @relation(fields: [professionalId], references: [id])
+
+  messages                Message[]                          
+
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
+
+  @@map("chats")
+}
+
+model Message {
+  id                      String                      @id @default(uuid())
+  content                 String
+  userId                  String
+  chatId                  String
+  chat                    Chat                        @relation(fields: [chatId], references: [id])
+
+  createdAt               DateTime                    @default(now())
+
+  @@map("messages")
+}
+
 
 enum Role {
   CLIENT

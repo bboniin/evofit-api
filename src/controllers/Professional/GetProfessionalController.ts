@@ -22,6 +22,12 @@ class GetProfessionalController {
             }
         })
 
+        professional.clientsProfessional.map((item)=>{
+            if (item["client"]["photo"]) {
+                item["client"]["photo_url"] = "https://evofit-data.s3.us-east-1.amazonaws.com/" + item["client"]["photo"];
+            }
+        })
+
         return res.json(professional)
     }
 }

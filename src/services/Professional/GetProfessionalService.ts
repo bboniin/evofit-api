@@ -12,9 +12,22 @@ class GetProfessionalService {
                 userId: professionalId
             },
             include: {
-                photos: true
+                photos: true,
+                clientsProfessional: {
+                    where: {
+                        clientId: {
+                          not: null
+                        }
+                    },
+                    include: {
+                        client: true
+                    }
+                }
             }
         })
+
+        professional["clientsTotal"] = professional.clientsProfessional.length
+        professional.clientsProfessional = professional.clientsProfessional.slice(0, 4)
 
         return (professional)
     }

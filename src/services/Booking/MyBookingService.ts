@@ -1,6 +1,5 @@
 import { startOfDay } from 'date-fns';
 import prismaClient from '../../prisma';
-import { Console } from 'console';
 
 interface UserRequest {
     userId: string;

@@ -96,13 +96,12 @@ class DayScheduleProfessionalService {
             );
 
             // Adicionar o slot se ele tiver pelo menos 60 minutos de espaço até o próximo horário
-            
+            if((!isBlocked && !isBooked) && hasEnoughTimeBeforeNext && isBefore(addMinutes(currentTime, 45), endTime)){
                 slots.push({
                     startTime: format(currentTime, 'HH:mm'),
-                    endTime: format(slotEndTime, 'HH:mm'),
-                    available: (!isBlocked && !isBooked) && hasEnoughTimeBeforeNext && isBefore(addMinutes(currentTime, 45), endTime), 
+                    endTime: format(slotEndTime, 'HH:mm')
                 });
-            
+            }
 
             currentTime = nextTime;
         }

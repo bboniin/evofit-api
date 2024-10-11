@@ -16,7 +16,6 @@ interface ProfessionalRequest {
     descriptionConsultancy: string;
     valueLesson: number;
     enableLesson: boolean;
-    descriptionLesson: string;
     keyPix: string;
     typePix: string;
     type: string;
@@ -24,7 +23,7 @@ interface ProfessionalRequest {
 
 class EditProfessionalService {
     async execute({ name, birthday, phoneNumber, photo, email, cref, description, valueConsultancy, userId,
-        enableConsultancy, typePix, type, descriptionConsultancy, valueLesson, enableLesson, keyPix, descriptionLesson, cpf }: ProfessionalRequest) {
+        enableConsultancy, typePix, type, descriptionConsultancy, valueLesson, enableLesson, keyPix, cpf }: ProfessionalRequest) {
 
         let data = {}
 
@@ -87,7 +86,7 @@ class EditProfessionalService {
             if(!keyPix || !typePix){
                 throw new Error("Preencha o tipo e chave PIX")
             }
-            if(enableLesson && (!valueLesson || !descriptionLesson)){
+            if(enableLesson && !valueLesson){
                 throw new Error("Preencha valor e descrição da aula individual")
             }
             if(enableConsultancy && (!valueConsultancy || !descriptionConsultancy)){
@@ -99,7 +98,6 @@ class EditProfessionalService {
                 descriptionConsultancy: descriptionConsultancy,
                 valueLesson: valueLesson,
                 enableLesson: enableLesson,
-                descriptionLesson: descriptionLesson,
                 keyPix: keyPix,
                 typePix: typePix,
                 finishBank: true

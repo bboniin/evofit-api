@@ -13,7 +13,17 @@ class GetSpaceService {
             },
             include: {
                 photos: true,
-                professionals: true
+                professionals: {
+                    where: {
+                        professional: {
+                            finishBank: true,
+                            finishProfile: true
+                        }
+                    },
+                    include: {
+                        professional: true
+                    }
+                }
             }
         })
 

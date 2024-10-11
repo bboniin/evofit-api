@@ -22,6 +22,12 @@ class GetSpaceController {
             }
         })
 
+        space.professionals.map((item)=>{
+            if (item["professional"]["photo"]) {
+                item["professional"]["photo_url"] = "https://evofit-data.s3.us-east-1.amazonaws.com/" + item["professional"]["photo"];
+            }
+        })
+
         return res.json(space)
     }
 }
