@@ -17,8 +17,8 @@ class SendNotificationService {
                     'pt': "Nova mensagem",
                 },
                 contents: {
-                'en': message["content"],
-                'pt': message["content"],
+                    'en': message["content"],
+                    'pt': message["content"],
                 },
                 include_external_user_ids: [recipientId]
             })

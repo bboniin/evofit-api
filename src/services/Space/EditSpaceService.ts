@@ -20,21 +20,19 @@ interface SpaceRequest {
     number: string;
     complement: string;
     address: string;
-    mondayOperation: string;
-    tuesdayOperation: string;
-    wednesdayOperation: string;
-    thursdayOperation: string;
-    fridayOperation: string;
-    saturdayOperation: string;
-    sundayOperation: string;
     keyPix: string;
     typePix: string;
     type: string;
+    schedule: Array<{
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+    }>;
 }
 
 class EditSpaceService {
     async execute({ name, city, keyPix, typePix, type, state, enableDiarie, descriptionDiarie, valueDiarie, zipCode, address, number, complement, phoneNumber, cnpj, latitude, longitude, description,
-        photo, email, mondayOperation, tuesdayOperation, wednesdayOperation, thursdayOperation, fridayOperation, saturdayOperation, sundayOperation, userId }: SpaceRequest) {
+        photo, email, schedule, userId }: SpaceRequest) {
 
         let data = {}
 
@@ -44,7 +42,11 @@ class EditSpaceService {
                 role: "SPACE"
             },
             include: {
-                space: true
+                space: {
+                    include: {
+                        spaceHours: true
+                    }
+                }
             }
         })
 
@@ -116,22 +118,64 @@ class EditSpaceService {
                 zipCode: zipCode,
                 number: number,
                 complement: complement,
-                address: address,
-                finishAddress: true
+                address: address
             }
         }
 
         if(type == "time"){
-            data = {
-                mondayOperation: mondayOperation,
-                tuesdayOperation: tuesdayOperation,
-                wednesdayOperation: wednesdayOperation,
-                thursdayOperation: thursdayOperation,
-                fridayOperation: fridayOperation,
-                saturdayOperation: saturdayOperation,
-                sundayOperation: sundayOperation,
-                finishTime: true
+            if(!schedule.length){
+                throw new Error("Adicione pelo menos um dia de funcionamento")
             }
+            Promise.all(
+                await userData.spaceHours.map( async (item)=>{
+                    if(schedule){
+                        if(schedule.some((data)=> data.dayOfWeek != item.dayOfWeek))
+                        await prismaClient.spaceHours.delete({
+                            where: {
+                                spaceId_dayOfWeek:{
+                                    spaceId: userData.id,
+                                    dayOfWeek: item.dayOfWeek
+                                }
+                            }    
+                        })    
+                    }
+                    
+                })
+            )    
+
+            await Promise.all(
+                await schedule.map( async (item)=>{
+                    const spaceHours = await prismaClient.spaceHours.findUnique({
+                        where: {
+                            spaceId_dayOfWeek:{
+                                spaceId: userId,
+                                dayOfWeek: Number(item.dayOfWeek)
+                            }
+                        }    
+                    })
+                    if(spaceHours){
+                        await prismaClient.spaceHours.update({
+                            where: {
+                                id: spaceHours.id
+                            },
+                            data: {
+                                startTime: item.startTime,
+                                endTime: item.endTime,
+                            }
+                        })  
+                    }else{
+                        await prismaClient.spaceHours.create({
+                            data: {
+                                spaceId: userId,
+                                dayOfWeek: Number(item.dayOfWeek),
+                                startTime: item.startTime,
+                                endTime: item.endTime,
+                            }
+                        })   
+                    }
+                    
+                })
+            )    
         }
 
         if (photo) {
@@ -151,6 +195,9 @@ class EditSpaceService {
                 userId: userId,
             },
             data: data,
+            include: {
+                spaceHours: true
+            }
         })
 
         if(email && (email != userData.email)){

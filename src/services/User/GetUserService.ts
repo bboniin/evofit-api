@@ -12,9 +12,17 @@ class GetUserService {
                 id: userId
             },
             include: {
-                space: true,
+                space: {
+                    include: {
+                        spaceHours: true
+                    }
+                },
                 client: true,
-                professional: true
+                professional: {
+                    include: {
+                        workSchedules: true
+                    }
+                }
             }
         })
 

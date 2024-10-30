@@ -12,7 +12,11 @@ class ListLinkedSpacesService {
                 professionalId: userId
             },
             include: {
-                space: true
+                space: {
+                    include: {
+                        spaceHours: true
+                    }
+                }
             }
         })
 

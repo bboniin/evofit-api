@@ -3,18 +3,18 @@ import { CreateSpaceInitService } from '../../services/Professional/CreateSpaceI
 
 class CreateSpaceInitController {
     async handle(req: Request, res: Response) {
-        const { name, latitude, longitude, description, city, state, zipCode, address, number, neighborhood, complement } = req.body
+        const { name, latitude, longitude, description, city, state, zipCode, address, number, neighborhood, complement, schedule } = req.body
         
         let photo = ""
 
         if (req.file) {
             photo = req.file.filename
         }
-
+        
         const createSpaceInitService = new CreateSpaceInitService
 
         const space = await createSpaceInitService.execute({
-            name, latitude: Number(latitude), longitude: Number(longitude), photo, description,  city, state, zipCode, address, number, neighborhood, complement
+            name, latitude: Number(latitude), longitude: Number(longitude), photo, schedule, description,  city, state, zipCode, address, number, neighborhood, complement
         })
 
         if (space["photo"]) {

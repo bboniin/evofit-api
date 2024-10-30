@@ -14,10 +14,15 @@ interface SpaceRequest {
     address: string;
     number: string;
     complement: string;
+    schedule: Array<{
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+    }>;
 }
 
 class CreateSpaceInitService {
-    async execute({ name, latitude, longitude, photo, description, city, state, neighborhood, number, address, zipCode, complement }: SpaceRequest) {
+    async execute({ name, latitude, schedule, longitude, photo, description, city, state, neighborhood, number, address, zipCode, complement }: SpaceRequest) {
 
         if (!name || !latitude || !longitude) {
             throw new Error("Todos os campos são obrigatórios")
@@ -47,9 +52,24 @@ class CreateSpaceInitService {
         }
 
         const space = await prismaClient.space.create({
-            data
+            data,
         })
 
+        if(schedule){
+            Promise.all(
+                await schedule.map( async (item)=>{
+                    await prismaClient.spaceHours.create({
+                        data: {
+                            spaceId: space.id,
+                            dayOfWeek: Number(item.dayOfWeek),
+                            startTime: item.startTime,
+                            endTime: item.endTime,
+                        }
+                    })
+                })
+            )    
+        }
+        
         return (space)
     }
 }

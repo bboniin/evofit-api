@@ -15,10 +15,16 @@ interface SpaceRequest {
     number: string;
     complement: string;
     spaceId: string;
+    schedule: Array<{
+        id: string;
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+    }>;
 }
 
 class EditSpaceInitService {
-    async execute({ name, spaceId, latitude, city, state, neighborhood, number, address, zipCode, complement, longitude, photo, description }: SpaceRequest) {
+    async execute({ name, spaceId, schedule, latitude, city, state, neighborhood, number, address, zipCode, complement, longitude, photo, description }: SpaceRequest) {
 
         const space = await prismaClient.space.findUnique({
             where: {
@@ -64,8 +70,71 @@ class EditSpaceInitService {
             where: {
                 id: spaceId
             },
-            data
+            data, 
+            include: {
+                spaceHours: true
+            }
         })
+
+        Promise.all(
+            await spaceEdit.spaceHours.map( async (item)=>{
+                if(schedule){
+                    if(schedule.some((data)=> data.dayOfWeek != item.dayOfWeek))
+                    await prismaClient.spaceHours.delete({
+                        where: {
+                            spaceId_dayOfWeek:{
+                                spaceId: spaceId,
+                                dayOfWeek: item.dayOfWeek
+                            }
+                        }    
+                    })    
+                }
+                
+            })
+        )    
+
+        if(schedule){
+            Promise.all(
+                await schedule.map( async (item)=>{
+                    const spaceHours = await prismaClient.spaceHours.findUnique({
+                        where: {
+                            spaceId_dayOfWeek:{
+                                spaceId: spaceId,
+                                dayOfWeek: Number(item.dayOfWeek)
+                            }
+                        }    
+                    })
+                    
+                    if(spaceHours){
+                        await prismaClient.spaceHours.update({
+                            where: {
+                                id: spaceHours.id
+                            },
+                            data: {
+                                startTime: item.startTime,
+                                endTime: item.endTime,
+                            }
+                        })  
+                    }else{
+                        await prismaClient.spaceHours.create({
+                            data: {
+                                spaceId: space.id,
+                                dayOfWeek: Number(item.dayOfWeek),
+                                startTime: item.startTime,
+                                endTime: item.endTime,
+                            }
+                        })    
+                    }
+                    
+                })
+            )    
+        }else{
+            await prismaClient.spaceHours.deleteMany({
+                where: {
+                    spaceId: spaceId,
+                }    
+            })    
+        }
 
         return (spaceEdit)
     }

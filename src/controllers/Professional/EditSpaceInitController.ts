@@ -3,7 +3,7 @@ import { EditSpaceInitService } from '../../services/Professional/EditSpaceInitS
 
 class EditSpaceInitController {
     async handle(req: Request, res: Response) {
-        const { name, latitude, longitude, description, city, state, zipCode, address, number, neighborhood, complement } = req.body
+        const { name, latitude, longitude, schedule, description, city, state, zipCode, address, number, neighborhood, complement } = req.body
         
         const { spaceId } = req.params
 
@@ -16,7 +16,7 @@ class EditSpaceInitController {
         const editSpaceInitService = new EditSpaceInitService
 
         const space = await editSpaceInitService.execute({
-            spaceId, name, latitude: Number(latitude), longitude: Number(longitude), photo, description,  city, state, zipCode, address, number, neighborhood, complement
+            spaceId, name, schedule, latitude: Number(latitude), longitude: Number(longitude), photo, description,  city, state, zipCode, address, number, neighborhood, complement
         })
 
         if (space["photo"]) {

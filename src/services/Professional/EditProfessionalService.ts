@@ -121,6 +121,9 @@ class EditProfessionalService {
                 userId: userId,
             },
             data: data,
+            include: {
+                workSchedules: true
+            }
         })
 
         if(email && (email != userData.email)){

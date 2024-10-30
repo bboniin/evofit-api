@@ -49,6 +49,10 @@ import { CreateBlockScheduleProfessionalController } from './controllers/Schedul
 import { EditBlockScheduleProfessionalController } from './controllers/Schedule/EditBlockScheduleProfessionalController'
 import { ListChatsController } from './controllers/Chat/ListChatsController'
 import { GetChatController } from './controllers/Chat/GetChatController'
+import { PasswordForgotController } from './controllers/User/PasswordForgotController'
+import { PasswordResetController } from './controllers/User/PasswordResetController'
+import { PasswordVerifyResetController } from './controllers/User/PasswordVerifyResetController'
+import { DeleteUserController } from './controllers/User/DeleteUserController'
 
 const upload = multer(uploadConfig)
 
@@ -63,11 +67,15 @@ router.get('/professional/p/:professionalId', new GetProfessionalController().ha
 router.post('/client', new CreateClientController().handle)
 router.post('/space', upload.single("file"), new CreateSpaceController().handle)
 router.post('/professional', upload.single("file"), new CreateProfessionalController().handle)
+router.post('/passwords-forgot', new PasswordForgotController().handle)
+router.post('/passwords-reset/:id', new PasswordResetController().handle)
+router.post('/passwords-verify-reset/:code', new PasswordVerifyResetController().handle)
 
 router.use(isAuthenticated)
 
 router.get('/users', new GetUserController().handle)
 router.put('/users/password', new EditPasswordUserController().handle)
+router.post('/user-delete', new DeleteUserController().handle)
 
 router.post('/space/init', upload.single("file"), new CreateSpaceInitController().handle)
 router.put('/space/init/:spaceId', upload.single("file"), new EditSpaceInitController().handle)

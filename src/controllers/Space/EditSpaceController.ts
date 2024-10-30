@@ -3,8 +3,8 @@ import { EditSpaceService } from '../../services/Space/EditSpaceService';
 
 class EditSpaceController {
     async handle(req: Request, res: Response) {
-        const { name, city, state, enableDiarie, descriptionDiarie, valueDiarie, zipCode, address, number, complement, phoneNumber, cnpj, latitude, longitude, description,
-            email, keyPix, typePix, mondayOperation, tuesdayOperation, wednesdayOperation, thursdayOperation, fridayOperation, saturdayOperation, sundayOperation, type } = req.body
+        const { name, city, state, enableDiarie, descriptionDiarie, valueDiarie, zipCode, address, number, complement, phoneNumber, cnpj, 
+            latitude, longitude, description, email, keyPix, typePix, schedule, type } = req.body
 
         let photo = ""
 
@@ -18,8 +18,7 @@ class EditSpaceController {
 
         const space = await editSpaceService.execute({
             name, city, state, descriptionDiarie, keyPix, typePix, valueDiarie: valueDiarie ? Number(valueDiarie) : 0, enableDiarie: enableDiarie == "true", zipCode, address, number, complement, phoneNumber,
-            cnpj, latitude: latitude ? Number(latitude) : 0, longitude: longitude ? Number(longitude) : 0, description, photo, email, mondayOperation, tuesdayOperation, wednesdayOperation, thursdayOperation, 
-            fridayOperation, saturdayOperation, sundayOperation, type, userId
+            cnpj, latitude: latitude ? Number(latitude) : 0, longitude: longitude ? Number(longitude) : 0, description, photo, email, schedule, type, userId
         })
 
         if (space["photo"]) {

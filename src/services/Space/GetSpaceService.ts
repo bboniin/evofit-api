@@ -23,7 +23,8 @@ class GetSpaceService {
                     include: {
                         professional: true
                     }
-                }
+                },
+                spaceHours: true
             }
         })
 

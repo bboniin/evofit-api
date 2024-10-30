@@ -18,6 +18,7 @@ model User {
   id                     String                       @id @default(uuid())
   email                  String                       @unique
   password               String
+  isDelete               Boolean                      @default(false)
   role                   Role
   client                 Client?
   professional           Professional?
@@ -102,13 +103,6 @@ model Space {
   number                  String?
   photo                   String?
   cnpj                    String?
-  mondayOperation         String?
-  tuesdayOperation        String?
-  wednesdayOperation      String?
-  thursdayOperation       String?
-  fridayOperation         String?
-  saturdayOperation       String?
-  sundayOperation         String?
   latitude                Float
   longitude               Float
   valueDiarie             Float?
@@ -118,11 +112,10 @@ model Space {
   typePix                 String?
   finishBank              Boolean                     @default(false)
   finishProfile           Boolean                     @default(false)
-  finishAddress           Boolean                     @default(false)
-  finishTime              Boolean                     @default(false)
 
   photos                  PhotosSpace[]       
-  professionals           ProfessionalSpace[]       
+  professionals           ProfessionalSpace[]     
+  spaceHours              SpaceHours[]  
 
   user                    User?                       @relation(fields: [userId], references: [id])
 
@@ -173,6 +166,23 @@ model WorkSchedule {
   @@unique([professionalId, dayOfWeek])
 
   @@map("workScheludes")
+}
+
+model SpaceHours {
+  id                      String                      @id @default(uuid())
+  spaceId                 String               
+  dayOfWeek               Int                             
+  startTime               String                     
+  endTime                 String                     
+
+  space                   Space                @relation(fields: [spaceId], references: [id])
+
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt 
+
+  @@unique([spaceId, dayOfWeek])
+
+  @@map("spaceHours")
 }
 
 model Schedule {
@@ -281,6 +291,15 @@ model Message {
   @@map("messages")
 }
 
+model PasswordForgot {
+  id         String    @id @default(uuid())
+  email      String
+  code       String
+  used       Boolean   @default(false)
+  create_at  DateTime  @default(now())
+
+  @@map("passwords_forgot")
+}
 
 enum Role {
   CLIENT
