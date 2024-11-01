@@ -53,6 +53,8 @@ import { PasswordForgotController } from './controllers/User/PasswordForgotContr
 import { PasswordResetController } from './controllers/User/PasswordResetController'
 import { PasswordVerifyResetController } from './controllers/User/PasswordVerifyResetController'
 import { DeleteUserController } from './controllers/User/DeleteUserController'
+import { OrderNotificationController } from './controllers/Payment/OrderNotificationController'
+import { RecipientNotificationController } from './controllers/Payment/RecipientNotificationController'
 
 const upload = multer(uploadConfig)
 
@@ -70,6 +72,9 @@ router.post('/professional', upload.single("file"), new CreateProfessionalContro
 router.post('/passwords-forgot', new PasswordForgotController().handle)
 router.post('/passwords-reset/:id', new PasswordResetController().handle)
 router.post('/passwords-verify-reset/:code', new PasswordVerifyResetController().handle)
+
+router.post('/order', new OrderNotificationController().handle)
+router.post('/recipient', new RecipientNotificationController().handle)
 
 router.use(isAuthenticated)
 
