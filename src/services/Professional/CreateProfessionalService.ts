@@ -9,7 +9,8 @@ interface ProfessionalRequest {
     photo: string;
     phoneNumber: string;
     email: string;
-    cpf: string;
+    typeUser: string;
+    cpfOrCnpj: string;
     birthday: Date;
     password: string;
     cref: string;
@@ -17,9 +18,9 @@ interface ProfessionalRequest {
 }
 
 class CreateProfessionalService {
-    async execute({ name, password, birthday, phoneNumber, cpf, cref, photo, email, description }: ProfessionalRequest) {
+    async execute({ name, password, birthday, phoneNumber, typeUser, cpfOrCnpj, cref, photo, email, description }: ProfessionalRequest) {
 
-        if (!name || !phoneNumber || !password || !cpf || !cref || !email || !birthday) {
+        if (!name || !phoneNumber || !password || !typeUser || !cpfOrCnpj || !cref || !email || !birthday) {
             throw new Error("Preencha todos os campos obrigatórios")
         }
 
@@ -39,7 +40,8 @@ class CreateProfessionalService {
             name: name,
             birthday: new Date(birthday),
             phoneNumber: phoneNumber,
-            cpf: cpf,
+            cpfOrCnpj: cpfOrCnpj,
+            typeUser: typeUser,
             cref: cref,
             description: description,
             photo: ""

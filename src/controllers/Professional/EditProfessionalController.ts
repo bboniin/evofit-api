@@ -4,7 +4,7 @@ import { EditProfessionalService } from '../../services/Professional/EditProfess
 class EditProfessionalController {
     async handle(req: Request, res: Response) {
         const { name, birthday, phoneNumber, email, cref, description, valueConsultancy, enableConsultancy,
-            descriptionConsultancy, valueLesson, enableLesson, keyPix, cpf, type, typePix } = req.body
+            descriptionConsultancy, valueLesson, enableLesson, type } = req.body
 
         let photo = ""
 
@@ -18,7 +18,7 @@ class EditProfessionalController {
 
         const professional = await editProfessionalService.execute({
             name, birthday, phoneNumber, email, cref, description, valueConsultancy: valueConsultancy ? Number(valueConsultancy) : 0, enableConsultancy: enableConsultancy == "true",
-            descriptionConsultancy, valueLesson: valueLesson ? Number(valueLesson) : 0, enableLesson: enableLesson == "true", keyPix, photo, cpf, type, typePix, userId
+            descriptionConsultancy, valueLesson: valueLesson ? Number(valueLesson) : 0, enableLesson: enableLesson == "true", photo, userId, type
         })
 
         if (professional["photo"]) {

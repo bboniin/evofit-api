@@ -6,7 +6,6 @@ interface ProfessionalRequest {
     photo: string;
     phoneNumber: string;
     email: string;
-    cpf: string;
     birthday: Date;
     cref: string;
     userId: string;
@@ -16,14 +15,12 @@ interface ProfessionalRequest {
     descriptionConsultancy: string;
     valueLesson: number;
     enableLesson: boolean;
-    keyPix: string;
-    typePix: string;
     type: string;
 }
 
 class EditProfessionalService {
     async execute({ name, birthday, phoneNumber, photo, email, cref, description, valueConsultancy, userId,
-        enableConsultancy, typePix, type, descriptionConsultancy, valueLesson, enableLesson, keyPix, cpf }: ProfessionalRequest) {
+        enableConsultancy, type, descriptionConsultancy, valueLesson, enableLesson }: ProfessionalRequest) {
 
         let data = {}
 
@@ -64,8 +61,7 @@ class EditProfessionalService {
                 name: name || userData.name,
                 birthday: birthday ? new Date(birthday) : userData.birthday,
                 phoneNumber: phoneNumber || userData.phoneNumber,
-                cref: cref || userData.cref,
-                cpf: cpf || userData.cpf,
+                cref: cref || userData.cref
             }
         }
 
@@ -83,9 +79,6 @@ class EditProfessionalService {
             if(!enableLesson && !enableConsultancy){
                 throw new Error("Ative pelo menos um serviço")
             }
-            if(!keyPix || !typePix){
-                throw new Error("Preencha o tipo e chave PIX")
-            }
             if(enableLesson && !valueLesson){
                 throw new Error("Preencha valor e descrição da aula individual")
             }
@@ -97,10 +90,7 @@ class EditProfessionalService {
                 enableConsultancy: enableConsultancy,
                 descriptionConsultancy: descriptionConsultancy,
                 valueLesson: valueLesson,
-                enableLesson: enableLesson,
-                keyPix: keyPix,
-                typePix: typePix,
-                finishBank: true
+                enableLesson: enableLesson
             }
         }
 

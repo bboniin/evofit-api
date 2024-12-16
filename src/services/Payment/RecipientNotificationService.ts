@@ -7,7 +7,7 @@ interface RecipientRequest {
 class RecipientNotificationService {
     async execute({ data }: RecipientRequest) {
 
-        console.log(data)
+        console.log(data,2)
 /*
         const client = new OneSignal.Client('15ee78c4-6dab-4cb5-a606-1bb5b12170e1', 'OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw');
 

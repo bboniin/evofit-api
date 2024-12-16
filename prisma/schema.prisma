@@ -38,13 +38,16 @@ model Client {
   phoneNumber            String
   photo                  String?
   objective              String
+  customer_id            String                       
   experienceLevel        String
   birthday               DateTime
   user                   User?                        @relation(fields: [userId], references: [id])
 
   bookings               Booking[]
   clientsProfessional    ClientsProfessional[]
-  chats                  Chat[]       
+  chats                  Chat[]  
+  payments               Payment[] 
+  diaries                Diary[]     
 
   createdAt              DateTime                     @default(now())
   updatedAt              DateTime                     @updatedAt @default(now())
@@ -58,7 +61,8 @@ model Professional {
   name                    String
   phoneNumber             String?
   description             String?
-  cpf                     String 
+  typeUser                String? 
+  cpfOrCnpj               String? 
   cref                    String 
   valueConsultancy        Float? 
   photo                   String?
@@ -67,9 +71,8 @@ model Professional {
   descriptionConsultancy  String?
   valueLesson             Float? 
   enableLesson            Boolean                     @default(false)
-  keyPix                  String?
-  typePix                 String?
-  finishBank              Boolean                     @default(false)
+  recipientId             String?
+  recipientStatus         String?
   finishProfile           Boolean                     @default(false)
 
   clientsProfessional     ClientsProfessional[]
@@ -78,7 +81,8 @@ model Professional {
   workSchedules           WorkSchedule[]
   schedules               Schedule[]
   bookings                Booking[]
-  chats                   Chat[]       
+  chats                   Chat[]
+  payments                Payment[]    
 
   user                    User                        @relation(fields: [userId], references: [id])
 
@@ -102,20 +106,22 @@ model Space {
   neighborhood            String?
   number                  String?
   photo                   String?
-  cnpj                    String?
+  typeUser                String? 
+  cpfOrCnpj               String? 
   latitude                Float
   longitude               Float
   valueDiarie             Float?
   descriptionDiarie       String?
   enableDiarie            Boolean                     @default(false)
-  keyPix                  String?
-  typePix                 String?
-  finishBank              Boolean                     @default(false)
+  recipientId             String?
+  recipientStatus         String?
   finishProfile           Boolean                     @default(false)
 
   photos                  PhotosSpace[]       
   professionals           ProfessionalSpace[]     
   spaceHours              SpaceHours[]  
+  payments                Payment[]
+  diaries                 Diary[]    
 
   user                    User?                       @relation(fields: [userId], references: [id])
 
@@ -158,7 +164,7 @@ model WorkSchedule {
   startTime               String                     
   endTime                 String                     
 
-  professional            Professional                @relation(fields: [professionalId], references: [id])
+  professional            Professional                @relation(fields: [professionalId], references: [userId])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt 
@@ -175,7 +181,7 @@ model SpaceHours {
   startTime               String                     
   endTime                 String                     
 
-  space                   Space                @relation(fields: [spaceId], references: [id])
+  space                   Space                       @relation(fields: [spaceId], references: [userId])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt 
@@ -197,7 +203,7 @@ model Schedule {
   date                    DateTime       
 
   clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id])
-  professional            Professional                @relation(fields: [professionalId], references: [id])
+  professional            Professional                @relation(fields: [professionalId], references: [userId])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt 
@@ -213,12 +219,12 @@ model Booking {
   clientId                String
   startTime               String  
   endTime                 String 
-  date                    DateTime              
-  scheduleId              String?
-  orderId                 String?   
+  date                    DateTime            
+  status                  String                      @default("pendente")            
+  scheduleId              String? 
 
-  client                  Client                      @relation(fields: [clientId], references: [id])
-  professional            Professional                @relation(fields: [professionalId], references: [id])
+  client                  Client                      @relation(fields: [clientId], references: [userId])
+  professional            Professional                @relation(fields: [professionalId], references: [userId])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
@@ -231,12 +237,30 @@ model ProfessionalSpace {
   professionalId          String               
   spaceId                 String                       
   professional            Professional                @relation(fields: [professionalId], references: [userId])
-  space                   Space                       @relation(fields: [spaceId], references: [id])
+  space                   Space                       @relation(fields: [spaceId], references: [userId])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("professionalSpace")
+}
+
+model Diary {
+  id                      String                      @id @default(uuid())
+  clientId                String               
+  spaceId                 String                
+  paymentId               String     
+  used                    Boolean     
+  dateUsed                DateTime                    @default(now())    
+  status                  String                      @default("pendente") 
+
+  client                  Client                      @relation(fields: [clientId], references: [userId])
+  space                   Space                       @relation(fields: [spaceId], references: [userId])
+  payment                 Payment                     @relation(fields: [paymentId], references: [id])
+
+  createdAt               DateTime                    @default(now())
+
+  @@map("diaries")
 }
 
 model ClientsProfessional {
@@ -251,9 +275,11 @@ model ClientsProfessional {
   value                   Float         
   professionalId          String
   clientId                String?   
-  professional            Professional                @relation(fields: [professionalId], references: [userId])
-  client                  Client?                     @relation(fields: [clientId], references: [id])
 
+  professional            Professional                @relation(fields: [professionalId], references: [userId])
+  client                  Client?                     @relation(fields: [clientId], references: [userId])
+
+  payments                Payment[]
   schedules               Schedule[]                  
 
   createdAt               DateTime                    @default(now())
@@ -264,12 +290,39 @@ model ClientsProfessional {
   @@map("clientsProfessional")
 }
 
+
+model Payment {
+  id                      String                      @id @default(uuid())
+  name                    String
+  value                   Float  
+  clientId                String
+  orderId                 String                      @unique
+  status                  String                      @default("pendente") 
+  clientProfessionalId    String? 
+  professionalId          String? 
+  spaceId                 String?  
+  amount                  Int 
+  valueUnit               Float  
+
+  professional            Professional?               @relation(fields: [professionalId], references: [userId])
+  clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id])
+  space                   Space?                      @relation(fields: [spaceId], references: [userId])
+  client                  Client                      @relation(fields: [clientId], references: [userId])  
+
+  diaries                 Diary[] 
+
+  date                    DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
+
+  @@map("payments")
+}
+
 model Chat {
   id                      String                      @id @default(uuid())
   clientId                String
   professionalId          String
-  client                  Client                      @relation(fields: [clientId], references: [id])
-  professional            Professional                @relation(fields: [professionalId], references: [id])
+  client                  Client                      @relation(fields: [clientId], references: [userId])
+  professional            Professional                @relation(fields: [professionalId], references: [userId])
 
   messages                Message[]                          
 

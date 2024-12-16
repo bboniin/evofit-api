@@ -6,7 +6,6 @@ interface SpaceRequest {
     photo: string;
     phoneNumber: string;
     email: string;
-    cnpj: string;
     userId: string;
     description: string;
     latitude: number;
@@ -20,8 +19,6 @@ interface SpaceRequest {
     number: string;
     complement: string;
     address: string;
-    keyPix: string;
-    typePix: string;
     type: string;
     schedule: Array<{
         dayOfWeek: number;
@@ -31,8 +28,8 @@ interface SpaceRequest {
 }
 
 class EditSpaceService {
-    async execute({ name, city, keyPix, typePix, type, state, enableDiarie, descriptionDiarie, valueDiarie, zipCode, address, number, complement, phoneNumber, cnpj, latitude, longitude, description,
-        photo, email, schedule, userId }: SpaceRequest) {
+    async execute({ name, city, type, state, enableDiarie, descriptionDiarie, valueDiarie, zipCode, address, number, complement, phoneNumber,
+         latitude, longitude, description, photo, email, schedule, userId }: SpaceRequest) {
 
         let data = {}
 
@@ -76,8 +73,7 @@ class EditSpaceService {
             }
             data = {
                 name: name || userData.name,
-                phoneNumber: phoneNumber || userData.phoneNumber,
-                cnpj: cnpj || userData.cnpj,
+                phoneNumber: phoneNumber || userData.phoneNumber
             }
         }
 
@@ -93,16 +89,13 @@ class EditSpaceService {
         }
 
         if(type == "bank"){
-            if(!enableDiarie || !valueDiarie || !descriptionDiarie || !keyPix || !typePix){
+            if(!enableDiarie || !valueDiarie || !descriptionDiarie){
                 throw new Error("Ative a Diaria e preencha todos os campos")
             }
             data = {
                 valueDiarie: valueDiarie,
                 enableDiarie: enableDiarie,
-                descriptionDiarie: descriptionDiarie,
-                keyPix: keyPix,
-                typePix: typePix,
-                finishBank: true
+                descriptionDiarie: descriptionDiarie
             }
         }
 

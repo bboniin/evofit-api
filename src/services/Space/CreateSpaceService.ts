@@ -9,7 +9,8 @@ interface SpaceRequest {
     photo: string;
     phoneNumber: string;
     email: string;
-    cnpj: string;
+    cpfOrCnpj: string;
+    typeUser: string;
     latitude: number;
     longitude: number;
     password: string;
@@ -24,9 +25,9 @@ interface SpaceRequest {
 }
 
 class CreateSpaceService {
-    async execute({ name, password, city, state, zipCode, neighborhood, address, number, complement, phoneNumber, cnpj, latitude, longitude, description, photo, email }: SpaceRequest) {
+    async execute({ name, password, city, state, zipCode, neighborhood, address, number, complement, phoneNumber, typeUser, cpfOrCnpj, latitude, longitude, description, photo, email }: SpaceRequest) {
 
-        if (!name || !phoneNumber || !password || !cnpj || !neighborhood || !email || !city || !state || !zipCode || !longitude || !latitude || !address || !number) {
+        if (!name || !phoneNumber || !password || !typeUser || !cpfOrCnpj || !neighborhood || !email || !city || !state || !zipCode || !longitude || !latitude || !address || !number) {
             throw new Error("Preencha todos os campos obrigatórios")
         }
 
@@ -45,7 +46,8 @@ class CreateSpaceService {
         let data = {
             name: name,
             phoneNumber: phoneNumber,
-            cnpj: cnpj,
+            cpfOrCnpj: cpfOrCnpj,
+            typeUser: typeUser,
             description: description,
             city: city,
             state: state,

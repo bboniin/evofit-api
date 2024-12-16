@@ -3,7 +3,7 @@ import { CreateProfessionalService } from '../../services/Professional/CreatePro
 
 class CreateProfessionalController {
     async handle(req: Request, res: Response) {
-        const { name, email, phoneNumber, password, birthday, cref, cpf, description } = req.body
+        const { name, email, phoneNumber, password, birthday, cref, typeUser, cpfOrCnpj, description } = req.body
         
         let photo = ""
 
@@ -14,7 +14,7 @@ class CreateProfessionalController {
         const createProfessionalService = new CreateProfessionalService
 
         const professional = await createProfessionalService.execute({
-            name, email, password, phoneNumber, birthday, photo, cref, cpf, description
+            name, email, password, phoneNumber, birthday, photo, cref, typeUser, cpfOrCnpj, description
         })
 
         if (professional["photo"]) {

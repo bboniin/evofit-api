@@ -55,6 +55,14 @@ import { PasswordVerifyResetController } from './controllers/User/PasswordVerify
 import { DeleteUserController } from './controllers/User/DeleteUserController'
 import { OrderNotificationController } from './controllers/Payment/OrderNotificationController'
 import { RecipientNotificationController } from './controllers/Payment/RecipientNotificationController'
+import { CreateOrderDiaryController } from './controllers/Diary/CreateOrderDiarieController'
+import { ClientDiariesController } from './controllers/Diary/ClientDiariesController'
+import { SpaceDiariesController } from './controllers/Diary/SpaceDiariesController'
+import { CreateRecipientController } from './controllers/Payment/CreateRecipientController'
+import { UpdateRecipientController } from './controllers/Payment/UpdateRecipientController'
+import { GetRecipientController } from './controllers/Payment/GetRecipientController'
+import { ClientPaymentsController } from './controllers/Payment/ClientPaymentsController'
+import { GetPaymentController } from './controllers/Payment/GetPaymentController'
 
 const upload = multer(uploadConfig)
 
@@ -74,7 +82,7 @@ router.post('/passwords-reset/:id', new PasswordResetController().handle)
 router.post('/passwords-verify-reset/:code', new PasswordVerifyResetController().handle)
 
 router.post('/order', new OrderNotificationController().handle)
-router.post('/recipient', new RecipientNotificationController().handle)
+router.put('/recipient/notification/:recipientId', new RecipientNotificationController().handle)
 
 router.use(isAuthenticated)
 
@@ -127,6 +135,16 @@ router.get('/client/frequency', new FrequencyBookingController().handle)
 
 router.get('/chats', new ListChatsController().handle)
 router.get('/chat/:recipientId', new GetChatController().handle)
+
+router.post('/diarie/:spaceId', new CreateOrderDiaryController().handle)
+router.get('/diaries', new ClientDiariesController().handle)
+router.get('/diaries/space', new SpaceDiariesController().handle)
+
+router.post('/recipient', new CreateRecipientController().handle)
+router.put('/recipient', new UpdateRecipientController().handle)
+router.get('/recipient/:recipientId', new GetRecipientController().handle)
+router.get('/payments/client', new ClientPaymentsController().handle)
+router.get('/payment/:paymentId', new GetPaymentController().handle)
 
 
 export { router }

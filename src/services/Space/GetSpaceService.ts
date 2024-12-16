@@ -16,7 +16,11 @@ class GetSpaceService {
                 professionals: {
                     where: {
                         professional: {
-                            finishBank: true,
+                            OR: [
+                                { recipientStatus: "registration" },
+                                { recipientStatus: "affiliation" },
+                                { recipientStatus: "active" },
+                            ],
                             finishProfile: true
                         }
                     },
