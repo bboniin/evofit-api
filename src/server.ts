@@ -109,5 +109,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(3333, () => {
-  console.log(`rodando v1.0.42`);
+  console.log(`rodando v1.0.43`);
 });
