@@ -4,7 +4,7 @@ import axios, { AxiosInstance } from 'axios';
 const api: AxiosInstance = axios.create({
   baseURL: 'https://api.pagar.me/core/v5/',
   auth: {
-    username: 'sk_b675e9e7687c454b8d52fe632000cb49',
+    username: 'sk_643559de2c3d4db497014ef024f5d1dd',
     password: '',
   },
 });

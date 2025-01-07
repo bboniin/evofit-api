@@ -21,9 +21,9 @@ class MyBookingService {
         const schedules = await prismaClient.clientsProfessional.findMany({
             where: {
                 clientId: client.id,
-                status: {
-                    not: "cancelado",
-                },
+            },
+            orderBy: {
+                status: "asc"
             },
             include: {
                 professional: true,

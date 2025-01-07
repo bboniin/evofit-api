@@ -37,8 +37,7 @@ model Client {
   cpf                    String
   phoneNumber            String
   photo                  String?
-  objective              String
-  customer_id            String                       
+  objective              String                   
   experienceLevel        String
   birthday               DateTime
   user                   User?                        @relation(fields: [userId], references: [id])
@@ -47,7 +46,8 @@ model Client {
   clientsProfessional    ClientsProfessional[]
   chats                  Chat[]  
   payments               Payment[] 
-  diaries                Diary[]     
+  diaries                Diary[]  
+  ratings                Rating[]      
 
   createdAt              DateTime                     @default(now())
   updatedAt              DateTime                     @updatedAt @default(now())
@@ -82,7 +82,8 @@ model Professional {
   schedules               Schedule[]
   bookings                Booking[]
   chats                   Chat[]
-  payments                Payment[]    
+  payments                Payment[]   
+  ratings                 Rating[]    
 
   user                    User                        @relation(fields: [userId], references: [id])
 
@@ -122,6 +123,7 @@ model Space {
   spaceHours              SpaceHours[]  
   payments                Payment[]
   diaries                 Diary[]    
+  ratings                 Rating[]    
 
   user                    User?                       @relation(fields: [userId], references: [id])
 
@@ -200,7 +202,8 @@ model Schedule {
   isBlock                 Boolean              
   startTime               String 
   endTime                 String 
-  date                    DateTime       
+  date                    DateTime
+  description             String?       
 
   clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id])
   professional            Professional                @relation(fields: [professionalId], references: [userId])
@@ -220,7 +223,10 @@ model Booking {
   startTime               String  
   endTime                 String 
   date                    DateTime            
-  status                  String                      @default("pendente")            
+  status                  BookingStatus               @default(pending)  
+  presence                String?                         
+  paymentId               String?                     @unique           
+  academy                 String?                                                     
   scheduleId              String? 
 
   client                  Client                      @relation(fields: [clientId], references: [userId])
@@ -252,7 +258,7 @@ model Diary {
   paymentId               String     
   used                    Boolean     
   dateUsed                DateTime                    @default(now())    
-  status                  String                      @default("pendente") 
+  status                  String                      @default("pending") 
 
   client                  Client                      @relation(fields: [clientId], references: [userId])
   space                   Space                       @relation(fields: [spaceId], references: [userId])
@@ -268,10 +274,12 @@ model ClientsProfessional {
   email                   String
   phoneNumber             String  
   name                    String  
-  status                  String  
-  dayDue                  String 
+  status                  Status
+  initConsultancy         Boolean                     @default(false)                    
+  dayDue                  Int                         @default(1)
   datePayment             DateTime                    @default(now()) 
-  academy                 String  
+  consultancy             Boolean                      
+  academy                 String?  
   value                   Float         
   professionalId          String
   clientId                String?   
@@ -286,6 +294,7 @@ model ClientsProfessional {
   updatedAt               DateTime                    @updatedAt @default(now())
 
   @@unique([professionalId, email])
+  @@unique([professionalId, clientId])
 
   @@map("clientsProfessional")
 }
@@ -297,11 +306,14 @@ model Payment {
   value                   Float  
   clientId                String
   orderId                 String                      @unique
-  status                  String                      @default("pendente") 
+  status                  String                      @default("pending") 
+  type                    TypePayment                   
   clientProfessionalId    String? 
   professionalId          String? 
   spaceId                 String?  
+  recurring               Boolean                     @default(false)
   amount                  Int 
+  rate                    Float                       @default(0)
   valueUnit               Float  
 
   professional            Professional?               @relation(fields: [professionalId], references: [userId])
@@ -312,6 +324,7 @@ model Payment {
   diaries                 Diary[] 
 
   date                    DateTime                    @default(now())
+  expireAt                DateTime                    @default(now())         
   updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("payments")
@@ -332,6 +345,24 @@ model Chat {
   @@map("chats")
 }
 
+model Rating {
+  id                      String                      @id @default(uuid())
+  description             String
+  rate                    Int   
+  clientId                String                        
+  professionalId          String? 
+  spaceId                 String?  
+
+  professional            Professional?               @relation(fields: [professionalId], references: [userId])
+  space                   Space?                      @relation(fields: [spaceId], references: [userId])
+  client                  Client                      @relation(fields: [clientId], references: [userId])                      
+
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
+
+  @@map("ratings")
+}
+
 model Message {
   id                      String                      @id @default(uuid())
   content                 String
@@ -349,13 +380,45 @@ model PasswordForgot {
   email      String
   code       String
   used       Boolean   @default(false)
-  create_at  DateTime  @default(now())
+  createdAt  DateTime  @default(now())
 
   @@map("passwords_forgot")
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  title      String
+  message    String
+  userId     String?
+  open       Boolean          
+  dateOpen   DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+
+  @@map("notifications")
 }
 
 enum Role {
   CLIENT
   PROFESSIONAL
   SPACE
+}
+
+enum BookingStatus {
+  confirm
+  pending
+  cancelled
+}
+
+enum Status {
+  awaiting_registration
+  awaiting_payment
+  paid
+  overdue
+  cancelled
+}
+
+enum TypePayment {
+  DIARY
+  RECURRING
+  LESSON
 }

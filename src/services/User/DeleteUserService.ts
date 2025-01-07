@@ -53,7 +53,7 @@ class DeleteUserService {
                         clientId: user.id
                     },
                     data: {
-                        status: "cancelado"
+                        status: "cancelled"
                     }
                 })
             }
@@ -63,7 +63,7 @@ class DeleteUserService {
                         professionalId: user.id
                     },
                     data: {
-                        status: "cancelado"
+                        status: "cancelled"
                     }
                 })
             }

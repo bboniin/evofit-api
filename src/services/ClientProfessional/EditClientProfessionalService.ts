@@ -5,7 +5,7 @@ interface ClientRequest {
     clientId: string;
     academy: string;
     value: number;
-    dayDue: string;
+    dayDue: number;
     schedule: Array<{
         dayOfWeek: number;
         startTime: string;

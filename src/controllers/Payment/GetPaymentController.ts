@@ -20,6 +20,9 @@ class GetPaymentController {
         if (payment.professional?.photo) {
             payment.professional["photo_url"] = "https://evofit-data.s3.us-east-1.amazonaws.com/" + payment.professional.photo;
         }
+        if (payment.client?.photo) {
+            payment.client["photo_url"] = "https://evofit-data.s3.us-east-1.amazonaws.com/" + payment.client.photo;
+        }
 
         return res.json(payment)
     }

@@ -23,21 +23,24 @@ class GetRecipientService {
             throw new Error('Usuário não encontrado');
         }
 
+
+
         const myRecipient = spaceOrProfessional.space?.recipientId == recipientId || spaceOrProfessional.professional?.recipientId == recipientId
 
-        if (!myRecipient) {
-            throw new Error('Conta bancária não pertence a sua conta');
+        if (myRecipient) {
+            let recipient = {}
+
+            await api.get(`/recipients/${recipientId}`).then((response)=>{
+                recipient = response.data
+            }).catch((e)=>{
+                throw new Error('Ocorreu um erro ao obter conta bancária');
+            })
+            
+            return recipient
+        }else{
+            return {}
         }
 
-        let recipient = {}
-
-        await api.get(`/recipients/${recipientId}`).then((response)=>{
-            recipient = response.data
-        }).catch((e)=>{
-            throw new Error('Ocorreu um erro ao obter conta bancária');
-        })
-        
-        return recipient
     }
 }
 

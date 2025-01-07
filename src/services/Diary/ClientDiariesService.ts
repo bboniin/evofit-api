@@ -24,7 +24,7 @@ class ClientDiariesService {
                     some: {
                         clientId: clientId,
                         status: {
-                          not: "cancelado",
+                          not: "cancelled",
                         }
                     },
                 }
@@ -34,7 +34,7 @@ class ClientDiariesService {
                     where: {
                         clientId: clientId,
                         status: {
-                          not: "cancelado"
+                          not: "cancelled"
                         }
                     },
                     orderBy: {

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { RecipientNotificationService } from '../../services/Payment/RecipientNotificationService';
+import { RecipientNotificationService } from '../../services/Recipient/RecipientNotificationService';
 
 class RecipientNotificationController {
     async handle(req: Request, res: Response) {

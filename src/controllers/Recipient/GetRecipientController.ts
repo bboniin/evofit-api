@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { GetRecipientService } from '../../services/Payment/GetRecipientService';
+import { GetRecipientService } from '../../services/Recipient/GetRecipientService';
 
 class GetRecipientController {
     async handle(req: Request, res: Response) {

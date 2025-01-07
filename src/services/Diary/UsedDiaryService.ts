@@ -17,6 +17,14 @@ class UsedDiaryService {
             throw new Error('Diária não encontrada');
         }
 
+        if (diary.used) {
+            throw new Error('Diária já foi utilizada');
+        }
+
+        if(diary.status != "paid"){
+            throw new Error('Pagamento de diária não confirmado');
+        }
+
         const order = await prismaClient.diary.update({
             where: {
                 id: diaryId

@@ -22,11 +22,24 @@ class SpaceDiariesService {
                 diaries: {
                     some: {
                         spaceId: space.id,
-                        status: "confirmado",
-                        used: false
+                        status: {
+                          not: "cancelled"
+                        }
                     },
                 }
             },
+            include: {
+                diaries: {
+                    where: {
+                        status: {
+                            not: "cancelled"
+                        }
+                    },
+                    orderBy: {
+                        status: "desc"
+                    }
+                }
+            }
         });
 
         return clients;

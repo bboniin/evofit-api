@@ -12,7 +12,7 @@ class ConfirmOrderDiaryService {
                 id: paymentId
             },
             data: {
-                status: "confirmado"
+                status: "paid"
             },
         });
 
@@ -21,7 +21,7 @@ class ConfirmOrderDiaryService {
                 paymentId: paymentId
             },
             data: {
-                status: "confirmado"
+                status: "paid"
             },
         });
 

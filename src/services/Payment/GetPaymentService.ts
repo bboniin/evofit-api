@@ -9,19 +9,6 @@ interface PaymentRequest {
 class GetPaymentService {
     async execute({ userId, paymentId }: PaymentRequest) {
 
-        const client = await prismaClient.client.findUnique({
-            where: { 
-                id: userId
-            },
-            include: {
-                user: true
-            },
-        });
-
-        if (!client) {
-            throw new Error('Usuário não encontrado');
-        }
-
         const payment = await prismaClient.payment.findUnique({
             where: {
                 id: paymentId

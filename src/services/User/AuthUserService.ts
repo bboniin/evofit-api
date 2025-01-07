@@ -20,9 +20,17 @@ class AuthUserService {
                 email: email
             },
             include: {
-                space: true,
+                space: {
+                    include: {
+                        spaceHours: true
+                    }
+                },
                 client: true,
-                professional: true
+                professional: {
+                    include: {
+                        workSchedules: true
+                    }
+                }
             }
         })
 
