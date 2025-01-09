@@ -58,6 +58,17 @@ class ConfirmPaymentService {
     }
 
     if (payment.type == "RECURRING") {
+      await prismaClient.clientsProfessional.update({
+        where: {
+          professionalId_clientId: {
+            professionalId: payment.professionalId,
+            clientId: payment.clientId,
+          },
+        },
+        data: {
+          status: "paid",
+        },
+      });
       await sendNotification(
         "Pagamento confirmado",
         `Pagamento realizado com sucesso`,
