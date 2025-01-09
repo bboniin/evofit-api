@@ -2,6 +2,41 @@ import * as OneSignal from "onesignal-node";
 import prismaClient from "../../prisma";
 import { endOfDay, startOfDay } from "date-fns";
 
+const client = new OneSignal.Client(
+  "15ee78c4-6dab-4cb5-a606-1bb5b12170e1",
+  "OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw"
+);
+
+async function sendNotification(title, text, userId, dataId, type) {
+  await client.createNotification({
+    headings: {
+      en: title,
+      pt: title,
+    },
+    contents: {
+      en: text,
+      pt: text,
+    },
+    data: {
+      screen: type,
+      params: {
+        id: dataId,
+      },
+    },
+    include_external_user_ids: [userId],
+  });
+
+  await prismaClient.notification.create({
+    data: {
+      title: title,
+      message: text,
+      type: type,
+      dataId: dataId,
+      userId: userId,
+    },
+  });
+}
+
 class NotificationBookingService {
   async execute() {
     const todayStart = startOfDay(new Date());
@@ -55,64 +90,44 @@ class NotificationBookingService {
     await Promise.all(
       bookings.map(async (booking) => {
         if (booking.startTime == in15Minutes) {
-          await clientOneSignal.createNotification({
-            headings: {
-              en: "Lembrete!",
-              pt: "Lembrete!",
-            },
-            contents: {
-              en: `Você tem uma aula hoje as ${booking.startTime}.`,
-              pt: `Você tem uma aula hoje as ${booking.startTime}.`,
-            },
-            include_external_user_ids: [booking.clientId],
-          });
-          await clientOneSignal.createNotification({
-            headings: {
-              en: "Aula!",
-              pt: "Aula!",
-            },
-            contents: {
-              en: `${booking.client.name} as ${booking.startTime}.`,
-              pt: `${booking.client.name} as ${booking.startTime}.`,
-            },
-            include_external_user_ids: [booking.professionalId],
-          });
+          await sendNotification(
+            "Lembrete!",
+            `Você tem uma aula hoje as ${booking.startTime}.`,
+            booking.clientId,
+            booking.id,
+            "BookingClient"
+          );
+          await sendNotification(
+            "Aula!",
+            `${booking.client.name} as ${booking.startTime}.`,
+            booking.professionalId,
+            booking.id,
+            "BookingProfessional"
+          );
         } else {
           if (booking.startTime == in1Hour) {
-            await clientOneSignal.createNotification({
-              headings: {
-                en: "Lembrete!",
-                pt: "Lembrete!",
-              },
-              contents: {
-                en: `Você tem uma aula hoje as ${booking.startTime}.`,
-                pt: `Você tem uma aula hoje as ${booking.startTime}.`,
-              },
-              include_external_user_ids: [booking.clientId],
-            });
-            await clientOneSignal.createNotification({
-              headings: {
-                en: "Aula!",
-                pt: "Aula!",
-              },
-              contents: {
-                en: `${booking.client.name} as ${booking.startTime}.`,
-                pt: `${booking.client.name} as ${booking.startTime}.`,
-              },
-              include_external_user_ids: [booking.professionalId],
-            });
+            await sendNotification(
+              "Lembrete!",
+              `Você tem uma aula hoje as ${booking.startTime}.`,
+              [booking.clientId],
+              booking,
+              "BookingClient"
+            );
+            await sendNotification(
+              "Aula!",
+              `${booking.client.name} as ${booking.startTime}.`,
+              booking.professionalId,
+              booking.id,
+              "BookingProfessional"
+            );
           } else {
-            await clientOneSignal.createNotification({
-              headings: {
-                en: "Lembrete!",
-                pt: "Lembrete!",
-              },
-              contents: {
-                en: `Você tem uma aula hoje as ${booking.startTime}.`,
-                pt: `Você tem uma aula hoje as ${booking.startTime}.`,
-              },
-              include_external_user_ids: [booking.clientId],
-            });
+            await sendNotification(
+              "Lembrete!",
+              `Você tem uma aula hoje as ${booking.startTime}.`,
+              booking.clientId,
+              booking.id,
+              "BookingClient"
+            );
           }
         }
       })

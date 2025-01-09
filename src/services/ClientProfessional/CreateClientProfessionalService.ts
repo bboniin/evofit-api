@@ -118,6 +118,23 @@ class CreateClientProfessionalService {
     const valueClientAll = value * 100;
     const valuePaid = valueClientAll * 1.02;
 
+    if (!consultancy) {
+      schedule.map(async (item) => {
+        await prismaClient.schedule.create({
+          data: {
+            professionalId: professionalId,
+            clientProfessionalId: clientProfessional.id,
+            dayOfWeek: item.dayOfWeek,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            recurring: true,
+            isBlock: false,
+            date: new Date(),
+          },
+        });
+      });
+    }
+
     if (data["clientId"]) {
       await api
         .post("/orders", {
@@ -205,23 +222,6 @@ class CreateClientProfessionalService {
           console.log(e.response.data);
           throw new Error("Ocorreu um erro ao criar cobrança");
         });
-
-      if (!consultancy) {
-        schedule.map(async (item) => {
-          await prismaClient.schedule.create({
-            data: {
-              professionalId: professionalId,
-              clientProfessionalId: clientProfessional.id,
-              dayOfWeek: item.dayOfWeek,
-              startTime: item.startTime,
-              endTime: item.endTime,
-              recurring: true,
-              isBlock: false,
-              date: new Date(),
-            },
-          });
-        });
-      }
 
       return clientProfessional;
     }

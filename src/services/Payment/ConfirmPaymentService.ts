@@ -10,7 +10,7 @@ const client = new OneSignal.Client(
   "OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw"
 );
 
-async function sendNotification(title, text, sendIds) {
+async function sendNotification(title, text, userId, payment, type) {
   await client.createNotification({
     headings: {
       en: title,
@@ -20,7 +20,23 @@ async function sendNotification(title, text, sendIds) {
       en: text,
       pt: text,
     },
-    include_external_user_ids: sendIds,
+    data: {
+      screen: type == "client" ? "PaymentClient" : "Payment",
+      params: {
+        id: payment.id,
+      },
+    },
+    include_external_user_ids: [userId],
+  });
+
+  await prismaClient.notification.create({
+    data: {
+      title: title,
+      message: text,
+      type: type == "client" ? "PaymentClient" : "Payment",
+      dataId: payment.id,
+      userId: userId,
+    },
   });
 }
 
@@ -45,25 +61,33 @@ class ConfirmPaymentService {
       await sendNotification(
         "Pagamento confirmado",
         `Pagamento realizado com sucesso`,
-        [payment.clientId]
+        payment.clientId,
+        payment,
+        "client"
       );
       await sendNotification(
         "Pagamento confirmado",
         `${payment.client.name} pagou a mensalidade`,
-        [payment.professionalId]
+        payment.professionalId,
+        payment,
+        "professional"
       );
     } else {
       if (payment.type == "LESSON") {
         await sendNotification(
           "Pedido confirmado",
           "Sua aula está confirmada",
-          [payment.clientId]
+          payment.clientId,
+          payment,
+          "client"
         );
 
         await sendNotification(
           "Pagamento confirmado",
           `${payment.client.name} confirmou sua reserva`,
-          [payment.professionalId]
+          payment.professionalId,
+          payment,
+          "professional"
         );
         await prismaClient.booking.updateMany({
           where: {
@@ -77,13 +101,17 @@ class ConfirmPaymentService {
         await sendNotification(
           "Pedido confirmado",
           "Suas diárias estão confirmadas",
-          [payment.clientId]
+          payment.clientId,
+          payment,
+          "client"
         );
 
         await sendNotification(
           "Pagamento confirmado",
           `${payment.client.name} confirmou suas diárias`,
-          [payment.spaceId]
+          payment.spaceId,
+          payment,
+          "space"
         );
         await prismaClient.diary.updateMany({
           where: {

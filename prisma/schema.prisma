@@ -389,8 +389,10 @@ model Notification {
   id         String    @id @default(uuid())
   title      String
   message    String
-  userId     String?
-  open       Boolean          
+  type       String?
+  dataId     String?
+  userId     String
+  open       Boolean   @default(false)       
   dateOpen   DateTime  @default(now())
   createdAt  DateTime  @default(now())
 

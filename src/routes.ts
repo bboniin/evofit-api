@@ -72,6 +72,8 @@ import { ListPaymentsController } from "./controllers/Payment/ListPaymentsContro
 import { GetWithdrawalsController } from "./controllers/Recipient/GetWithdrawalsController";
 import { CreateWithdrawalController } from "./controllers/Recipient/CreateWithdrawalController";
 import { HistoricLessonController } from "./controllers/Schedule/HistoricLessonService";
+import { ListNotificationsController } from "./controllers/Notification/ListNotificationsController";
+import { OpenNotificationsController } from "./controllers/Notification/OpenNotificationsController";
 
 const upload = multer(uploadConfig);
 
@@ -265,5 +267,8 @@ router.get("/balance", new GetBalanceController().handle);
 
 router.get("/withdrawals", new GetWithdrawalsController().handle);
 router.post("/withdrawal", new CreateWithdrawalController().handle);
+
+router.get("/notifications", new ListNotificationsController().handle);
+router.post("/notifications", new OpenNotificationsController().handle);
 
 export { router };

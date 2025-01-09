@@ -1,6 +1,6 @@
 import * as OneSignal from "onesignal-node";
 import prismaClient from "../../prisma";
-import { addHours, addMinutes, getDay } from "date-fns";
+import { addDays, addHours, addMinutes, getDay } from "date-fns";
 import api from "../../config/api";
 
 class ChargePaymentService {
@@ -24,6 +24,16 @@ class ChargePaymentService {
 
     await prismaClient.clientsProfessional.updateMany({
       where: {
+        dayDue: day,
+        status: "awaiting_payment",
+      },
+      data: {
+        status: "overdue",
+      },
+    });
+
+    await prismaClient.clientsProfessional.updateMany({
+      where: {
         dayDue: day - 1,
         status: "paid",
       },
@@ -31,11 +41,6 @@ class ChargePaymentService {
         status: "awaiting_payment",
       },
     });
-
-    const clientOneSignal = new OneSignal.Client(
-      "15ee78c4-6dab-4cb5-a606-1bb5b12170e1",
-      "OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw"
-    );
 
     await Promise.all(
       clients.map(async (client) => {
@@ -72,7 +77,7 @@ class ChargePaymentService {
               {
                 payment_method: "pix",
                 pix: {
-                  expires_in: 230400,
+                  expires_in: 259200,
                   additional_information: [
                     {
                       name: "information",
@@ -117,20 +122,8 @@ class ChargePaymentService {
                 value: valueClientAll / 100,
                 rate: (valuePaid - valueClientAll) / 100,
                 orderId: response.data.id,
-                expireAt: addHours(new Date(), 64),
+                expireAt: addDays(new Date(), 3),
               },
-            });
-
-            await clientOneSignal.createNotification({
-              headings: {
-                en: "Mensalidade pendente",
-                pt: "Mensalidade pendente",
-              },
-              contents: {
-                en: "Sua mensalidade vence amanhã",
-                pt: "Sua mensalidade vence amanhã",
-              },
-              include_external_user_ids: [client.clientId],
             });
           })
           .catch((e) => {

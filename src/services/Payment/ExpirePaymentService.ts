@@ -54,7 +54,23 @@ class ExpirePaymentService {
             en: "Por falta de pagamento, suas aulas com o personal foram suspensas",
             pt: "Por falta de pagamento, suas aulas com o personal foram suspensas",
           },
+          data: {
+            screen: "PaymentClient",
+            params: {
+              id: payment.id,
+            },
+          },
           include_external_user_ids: [payment.clientId],
+        });
+        await prismaClient.notification.create({
+          data: {
+            title: "Mensalidade cancelada",
+            message:
+              "Por falta de pagamento, suas aulas com o personal foram suspensas",
+            type: "PaymentClient",
+            dataId: payment.id,
+            userId: payment.clientId,
+          },
         });
       } else {
         if (payment.type == "DIARY") {
@@ -67,6 +83,12 @@ class ExpirePaymentService {
               en: "Por falta de pagamento o seu pedido foi cancelado",
               pt: "Por falta de pagamento o seu pedido foi cancelado",
             },
+            data: {
+              screen: "PaymentClient",
+              params: {
+                id: payment.id,
+              },
+            },
             include_external_user_ids: [payment.clientId],
           });
 
@@ -76,6 +98,16 @@ class ExpirePaymentService {
             },
             data: {
               status: "cancelled",
+            },
+          });
+
+          await prismaClient.notification.create({
+            data: {
+              title: "Pedido cancelado",
+              message: "Por falta de pagamento o seu pedido foi cancelado",
+              type: "PaymentClient",
+              dataId: payment.id,
+              userId: payment.clientId,
             },
           });
         } else {
@@ -88,6 +120,12 @@ class ExpirePaymentService {
               en: "Por falta de pagamento o seu pedido foi cancelado",
               pt: "Por falta de pagamento o seu pedido foi cancelado",
             },
+            data: {
+              screen: "PaymentClient",
+              params: {
+                id: payment.id,
+              },
+            },
             include_external_user_ids: [payment.clientId],
           });
           await prismaClient.booking.update({
@@ -96,6 +134,15 @@ class ExpirePaymentService {
             },
             data: {
               status: "cancelled",
+            },
+          });
+          await prismaClient.notification.create({
+            data: {
+              title: "Pedido cancelado",
+              message: "Por falta de pagamento o seu pedido foi cancelado",
+              type: "PaymentClient",
+              dataId: payment.id,
+              userId: payment.clientId,
             },
           });
         }

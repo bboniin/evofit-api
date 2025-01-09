@@ -1,19 +1,25 @@
-import { Request, Response } from 'express';
-import { SpaceDiariesService } from '../../services/Diary/SpaceDiariesService';
+import { Request, Response } from "express";
+import { SpaceDiariesService } from "../../services/Diary/SpaceDiariesService";
 
 class SpaceDiariesController {
-    async handle(req: Request, res: Response) {
-        
-        const spaceId = req.userId
+  async handle(req: Request, res: Response) {
+    const spaceId = req.userId;
 
-        const spaceDiariesService = new SpaceDiariesService
+    const spaceDiariesService = new SpaceDiariesService();
 
-        const order = await spaceDiariesService.execute({
-            spaceId: spaceId
-        })
+    const clients = await spaceDiariesService.execute({
+      spaceId: spaceId,
+    });
 
-        return res.json(order)
-    }
+    clients.map((item) => {
+      if (item["photo"]) {
+        item["photo_url"] =
+          "https://evofit-data.s3.us-east-1.amazonaws.com/" + item["photo"];
+      }
+    });
+
+    return res.json(clients);
+  }
 }
 
-export { SpaceDiariesController }
+export { SpaceDiariesController };
