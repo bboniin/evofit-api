@@ -1,49 +1,44 @@
-import prismaClient from '../../prisma';
+import prismaClient from "../../prisma";
 
-interface OrderDiaryRequest {
-    spaceId: string;
+interface DiaryRequest {
+  spaceId: string;
 }
 
 class SpaceDiariesService {
-    async execute({ spaceId }: OrderDiaryRequest) {
+  async execute({ spaceId }: DiaryRequest) {
+    const space = await prismaClient.space.findUnique({
+      where: {
+        userId: spaceId,
+      },
+    });
 
-        const space = await prismaClient.space.findUnique({
-            where: { 
-                userId: spaceId
-             }
-        });
-
-        if (!space) {
-            throw new Error('Espaço não encontrado');
-        }
-
-        const clients = await prismaClient.client.findMany({
-            where: {
-                diaries: {
-                    some: {
-                        spaceId: space.id,
-                        status: {
-                          not: "cancelled"
-                        }
-                    },
-                }
-            },
-            include: {
-                diaries: {
-                    where: {
-                        status: {
-                            not: "cancelled"
-                        }
-                    },
-                    orderBy: {
-                        status: "desc"
-                    }
-                }
-            }
-        });
-
-        return clients;
+    if (!space) {
+      throw new Error("Espaço não encontrado");
     }
+
+    const clients = await prismaClient.client.findMany({
+      where: {
+        diaries: {
+          some: {
+            spaceId: space.id,
+            used: false,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+      include: {
+        diaries: {
+          where: {
+            used: false,
+          },
+        },
+      },
+    });
+
+    return clients;
+  }
 }
 
 export { SpaceDiariesService };

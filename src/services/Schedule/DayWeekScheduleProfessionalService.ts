@@ -50,7 +50,7 @@ class DayWeekScheduleProfessionalService {
           },
         },
         clientProfessional: {
-          status: "paid",
+          status: "active",
         },
       },
     });

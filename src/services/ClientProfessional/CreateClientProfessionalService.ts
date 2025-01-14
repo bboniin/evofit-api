@@ -1,12 +1,20 @@
-import { addDays } from "date-fns";
+import {
+  addDays,
+  differenceInSeconds,
+  endOfDay,
+  getDay,
+  setDate,
+} from "date-fns";
+import * as OneSignal from "onesignal-node";
 import api from "../../config/api";
 import prismaClient from "../../prisma";
+import { validateEmail } from "../../config/functions";
 
 interface ClientRequest {
   name: string;
   phoneNumber: string;
   email: string;
-  academy: string;
+  spaceId: string;
   value: number;
   dayDue: number;
   consultancy: boolean;
@@ -25,7 +33,7 @@ class CreateClientProfessionalService {
     phoneNumber,
     email,
     consultancy,
-    academy,
+    spaceId,
     value,
     dayDue,
     schedule,
@@ -34,7 +42,7 @@ class CreateClientProfessionalService {
       !name ||
       !phoneNumber ||
       !professionalId ||
-      (!consultancy && !academy) ||
+      (!consultancy && !spaceId) ||
       !value ||
       !dayDue ||
       !email ||
@@ -43,11 +51,23 @@ class CreateClientProfessionalService {
       throw new Error("Todos os campos são obrigatórios");
     }
 
+    if (spaceId) {
+      const space = await prismaClient.space.findUnique({
+        where: {
+          id: spaceId,
+        },
+      });
+
+      if (!space) {
+        throw new Error("Academia não encontrada");
+      }
+    }
+
     let data = {
       name: name,
       email: email,
       phoneNumber: phoneNumber,
-      academy: academy,
+      spaceId: spaceId,
       value: value,
       professionalId: professionalId,
       consultancy: consultancy,
@@ -74,8 +94,14 @@ class CreateClientProfessionalService {
       },
     });
 
+    const day = getDay(new Date());
+
     if (userAlreadyExists) {
       throw new Error("Email já está sendo usado por outro tipo de usuário");
+    }
+
+    if (!validateEmail(email)) {
+      throw new Error("Email inválido");
     }
 
     const clientAlreadyExists = await prismaClient.user.findFirst({
@@ -86,7 +112,6 @@ class CreateClientProfessionalService {
 
     if (clientAlreadyExists) {
       data["clientId"] = clientAlreadyExists.id;
-      data["status"] = "awaiting_payment";
 
       const clientProfessionalAlreadyExists =
         await prismaClient.clientsProfessional.findFirst({
@@ -104,7 +129,11 @@ class CreateClientProfessionalService {
     const clientProfessional = await prismaClient.clientsProfessional.create({
       data: {
         ...data,
-        status: data["clientId"] ? "awaiting_payment" : "awaiting_registration",
+        status: data["clientId"]
+          ? day > dayDue
+            ? "overdue"
+            : "active"
+          : "registration_pending",
       },
       include: {
         client: {
@@ -112,6 +141,7 @@ class CreateClientProfessionalService {
             user: true,
           },
         },
+        professional: true,
       },
     });
 
@@ -136,92 +166,138 @@ class CreateClientProfessionalService {
     }
 
     if (data["clientId"]) {
-      await api
-        .post("/orders", {
-          closed: true,
-          items: [
-            {
-              amount: valuePaid,
-              description: `Mensalidade ${
-                consultancy ? "Consultoria" : "Personal"
-              }`,
-              quantity: 1,
-              code: 1,
-            },
-          ],
-          customer: {
-            name: clientProfessional.client.name,
-            type: "individual",
-            document: clientProfessional.client.cpf,
-            email: clientProfessional.client.user.email,
-            phones: {
-              mobile_phone: {
-                country_code: "55",
-                number: "000000000",
-                area_code: "11",
+      const client = new OneSignal.Client(
+        "15ee78c4-6dab-4cb5-a606-1bb5b12170e1",
+        "OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw"
+      );
+
+      await client.createNotification({
+        headings: {
+          en: "Novas Aulas",
+          pt: "Novas Aulas",
+        },
+        contents: {
+          en: `${clientProfessional.professional.name.toUpperCase()} cadastrou você como aluno`,
+          pt: `${clientProfessional.professional.name.toUpperCase()} cadastrou você como aluno`,
+        },
+        data: {
+          screen: "ClientSchedule",
+          params: {
+            id: clientProfessional.id,
+          },
+        },
+        include_external_user_ids: [clientProfessional.clientId],
+      });
+
+      await prismaClient.notification.create({
+        data: {
+          title: "Novas Aulas",
+          message: `${clientProfessional.professional.name.toUpperCase()} cadastrou você como aluno`,
+          type: "ClientSchedule",
+          dataId: clientProfessional.id,
+          userId: clientProfessional.client.id,
+        },
+      });
+
+      if (clientProfessional.dayDue + 1 >= day) {
+        await api
+          .post("/orders", {
+            closed: true,
+            items: [
+              {
+                amount: valuePaid,
+                description: `Mensalidade ${
+                  consultancy ? "Consultoria" : "Personal"
+                }`,
+                quantity: 1,
+                code: 1,
+              },
+            ],
+            customer: {
+              name: clientProfessional.client.name,
+              type: "individual",
+              document: clientProfessional.client.cpf,
+              email: clientProfessional.client.user.email,
+              phones: {
+                mobile_phone: {
+                  country_code: "55",
+                  number: "000000000",
+                  area_code: "11",
+                },
               },
             },
-          },
-          payments: [
-            {
-              payment_method: "pix",
-              pix: {
-                expires_in: 259200,
-                additional_information: [
+            payments: [
+              {
+                payment_method: "pix",
+                pix: {
+                  expires_in: differenceInSeconds(
+                    addDays(new Date(), 5),
+                    new Date()
+                  ),
+                  additional_information: [
+                    {
+                      name: "information",
+                      value: "number",
+                    },
+                  ],
+                },
+                split: [
                   {
-                    name: "information",
-                    value: "number",
+                    amount: valueClientAll,
+                    recipient_id: professional.recipientId,
+                    type: "flat",
+                    options: {
+                      charge_processing_fee: false,
+                      charge_remainder_fee: false,
+                      liable: false,
+                    },
+                  },
+                  {
+                    amount: valuePaid - valueClientAll,
+                    recipient_id: "re_cm2uxwdzw3j720m9tiinncic7",
+                    type: "flat",
+                    options: {
+                      charge_processing_fee: true,
+                      charge_remainder_fee: true,
+                      liable: true,
+                    },
                   },
                 ],
               },
-              split: [
-                {
-                  amount: valueClientAll,
-                  recipient_id: professional.recipientId,
-                  type: "flat",
-                  options: {
-                    charge_processing_fee: false,
-                    charge_remainder_fee: false,
-                    liable: false,
-                  },
+            ],
+          })
+          .then(async (response) => {
+            const order = await prismaClient.payment.create({
+              data: {
+                description: `Mensalidade ${
+                  consultancy ? "Consultoria" : "Personal"
+                }`,
+                professionalId: professionalId,
+                clientId: clientProfessional.client.id,
+                rate: (valuePaid - valueClientAll) / 100,
+                recurring: true,
+                type: "recurring",
+                value: valueClientAll / 100,
+                orderId: response.data.id,
+                expireAt: addDays(new Date(), 5),
+                items: {
+                  create: [
+                    {
+                      type: "recurring",
+                      value: value,
+                      amount: 1,
+                    },
+                  ],
                 },
-                {
-                  amount: valuePaid - valueClientAll,
-                  recipient_id: "re_cm2uxwdzw3j720m9tiinncic7",
-                  type: "flat",
-                  options: {
-                    charge_processing_fee: true,
-                    charge_remainder_fee: true,
-                    liable: true,
-                  },
-                },
-              ],
-            },
-          ],
-        })
-        .then(async (response) => {
-          const order = await prismaClient.payment.create({
-            data: {
-              name: `Mensalidade ${consultancy ? "Consultoria" : "Personal"}`,
-              professionalId: professionalId,
-              clientId: clientProfessional.client.id,
-              valueUnit: value,
-              amount: 1,
-              rate: (valuePaid - valueClientAll) / 100,
-              type: "RECURRING",
-              recurring: true,
-              value: valueClientAll / 100,
-              orderId: response.data.id,
-              expireAt: addDays(new Date(), 3),
-            },
-          });
+              },
+            });
 
-          return order;
-        })
-        .catch((e) => {
-          console.log(e.response.data);
-          throw new Error("Ocorreu um erro ao criar cobrança");
-        });
+            return order;
+          })
+          .catch((e) => {
+            throw new Error("Ocorreu um erro ao criar cobrança");
+          });
+      }
 
       return clientProfessional;
     }

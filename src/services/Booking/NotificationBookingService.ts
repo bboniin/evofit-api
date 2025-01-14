@@ -60,7 +60,7 @@ class NotificationBookingService {
 
     const bookings = await prismaClient.booking.findMany({
       where: {
-        status: "confirm",
+        status: "confirmed",
         OR: [
           {
             startTime: in15Minutes,

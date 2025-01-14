@@ -55,7 +55,7 @@ import { PasswordVerifyResetController } from "./controllers/User/PasswordVerify
 import { DeleteUserController } from "./controllers/User/DeleteUserController";
 import { CreatePaymentController } from "./controllers/Payment/CreatePaymentController";
 import { RecipientNotificationController } from "./controllers/Recipient/RecipientNotificationController";
-import { CreateOrderDiaryController } from "./controllers/Diary/CreateOrderDiarieController";
+import { CreateOrderController } from "./controllers/Payment/CreateOrderController";
 import { ClientDiariesController } from "./controllers/Diary/ClientDiariesController";
 import { SpaceDiariesController } from "./controllers/Diary/SpaceDiariesController";
 import { CreateRecipientController } from "./controllers/Recipient/CreateRecipientController";
@@ -74,6 +74,8 @@ import { CreateWithdrawalController } from "./controllers/Recipient/CreateWithdr
 import { HistoricLessonController } from "./controllers/Schedule/HistoricLessonService";
 import { ListNotificationsController } from "./controllers/Notification/ListNotificationsController";
 import { OpenNotificationsController } from "./controllers/Notification/OpenNotificationsController";
+import { SpaceHistoricDiariesController } from "./controllers/Diary/SpaceHistoricDiariesController";
+import { ClientHistoricDiariesController } from "./controllers/Diary/ClientHistoricDiariesController";
 
 const upload = multer(uploadConfig);
 
@@ -241,16 +243,20 @@ router.delete(
   new EditBlockScheduleProfessionalController().handle
 );
 
-router.post("/booking", new BuyBookingController().handle);
 router.get("/client/schedule", new MyBookingController().handle);
 router.get("/client/frequency", new FrequencyBookingController().handle);
 
 router.get("/chats", new ListChatsController().handle);
 router.get("/chat/:recipientId", new GetChatController().handle);
 
-router.post("/diarie/:spaceId", new CreateOrderDiaryController().handle);
+router.post("/order", new CreateOrderController().handle);
 router.get("/diaries", new ClientDiariesController().handle);
 router.get("/diaries/space", new SpaceDiariesController().handle);
+router.get("/historic/diaries", new ClientHistoricDiariesController().handle);
+router.get(
+  "/historic/diaries/space",
+  new SpaceHistoricDiariesController().handle
+);
 router.put("/diaries/used/:diaryId", new UsedDiaryController().handle);
 
 router.post("/recipient", new CreateRecipientController().handle);

@@ -93,6 +93,34 @@ class CreateSpaceService {
       }
     }
 
+    const userAlreadyExistsCPF = await prismaClient.user.findFirst({
+      where: {
+        OR: [
+          {
+            space: {
+              cpfOrCnpj: cpfOrCnpjString,
+            },
+          },
+          {
+            client: {
+              cpf: cpfOrCnpjString,
+            },
+          },
+          {
+            professional: {
+              cpfOrCnpj: cpfOrCnpjString,
+            },
+          },
+        ],
+      },
+    });
+
+    if (userAlreadyExistsCPF) {
+      throw new Error(
+        typeUser == "PF" ? "CPF já está em uso" : "CNPJ já está em uso"
+      );
+    }
+
     if (!validateEmail(email)) {
       throw new Error("Email inválido");
     }
@@ -101,12 +129,28 @@ class CreateSpaceService {
       throw new Error("Telefone inválido");
     }
 
+    const spaceGet = await prismaClient.space.findFirst({
+      where: {
+        userId: null,
+        OR: [
+          {
+            latitude: latitude,
+            longitude: longitude,
+          },
+          {
+            address: address,
+            number: number,
+          },
+        ],
+      },
+    });
+
     const passwordHash = await hash(password, 8);
 
     let data = {
       name: name,
       phoneNumber: phoneNumber,
-      cpfOrCnpj: cpfOrCnpj,
+      cpfOrCnpj: cpfOrCnpjString,
       typeUser: typeUser,
       description: description,
       city: city,
@@ -128,40 +172,80 @@ class CreateSpaceService {
       data["photo"] = upload;
     }
 
-    const user = await prismaClient.user.create({
-      data: {
-        email: email,
-        password: passwordHash,
-        role: "SPACE",
-      },
-    });
+    if (spaceGet) {
+      const user = await prismaClient.user.create({
+        data: {
+          email: email,
+          password: passwordHash,
+          role: "SPACE",
+          id: spaceGet.id,
+        },
+      });
 
-    const space = await prismaClient.space.create({
-      data: {
-        id: user.id,
-        userId: user.id,
-        ...data,
-      },
-    });
+      const space = await prismaClient.space.update({
+        where: {
+          id: spaceGet.id,
+        },
+        data: {
+          userId: user.id,
+          ...data,
+        },
+      });
 
-    const token = sign(
-      {
-        email: user.email,
+      const token = sign(
+        {
+          email: user.email,
+          role: user.role,
+        },
+        authConfig.jwt.secret,
+        {
+          subject: user.id,
+          expiresIn: "365d",
+        }
+      );
+
+      return {
         role: user.role,
-      },
-      authConfig.jwt.secret,
-      {
-        subject: user.id,
-        expiresIn: "365d",
-      }
-    );
+        email: user.email,
+        token: token,
+        ...space,
+      };
+    } else {
+      const user = await prismaClient.user.create({
+        data: {
+          email: email,
+          password: passwordHash,
+          role: "SPACE",
+        },
+      });
 
-    return {
-      role: user.role,
-      email: user.email,
-      token: token,
-      ...space,
-    };
+      const space = await prismaClient.space.create({
+        data: {
+          id: user.id,
+          userId: user.id,
+          ...data,
+        },
+      });
+
+      const token = sign(
+        {
+          email: user.email,
+          role: user.role,
+        },
+        authConfig.jwt.secret,
+        {
+          subject: user.id,
+          expiresIn: "365d",
+        }
+      );
+
+      return {
+        role: user.role,
+        email: user.email,
+        token: token,
+        ...space,
+      };
+    }
   }
 }
 

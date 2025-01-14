@@ -62,6 +62,32 @@ class CreateClientService {
       throw new Error("CPF inválido");
     }
 
+    const userAlreadyExistsCPF = await prismaClient.user.findFirst({
+      where: {
+        OR: [
+          {
+            space: {
+              cpfOrCnpj: cpfString,
+            },
+          },
+          {
+            client: {
+              cpf: cpfString,
+            },
+          },
+          {
+            professional: {
+              cpfOrCnpj: cpfString,
+            },
+          },
+        ],
+      },
+    });
+
+    if (userAlreadyExistsCPF) {
+      throw new Error("CPF já está em uso");
+    }
+
     if (!validateEmail(email)) {
       throw new Error("Email inválido");
     }
@@ -113,7 +139,7 @@ class CreateClientService {
           },
           data: {
             clientId: user.id,
-            status: "awaiting_payment",
+            status: "registration_pending",
           },
           include: {
             client: {
@@ -194,19 +220,26 @@ class CreateClientService {
           .then(async (response) => {
             await prismaClient.payment.create({
               data: {
-                name: `Mensalidade ${
+                description: `Mensalidade ${
                   clientUp.consultancy ? "Consultoria" : "Personal"
                 }`,
                 professionalId: clientUp.professionalId,
                 clientId: client.id,
-                valueUnit: clientUp.value,
-                amount: 1,
-                type: "RECURRING",
                 recurring: true,
+                type: "recurring",
                 value: valueClientAll / 100,
                 rate: (valuePaid - valueClientAll) / 100,
                 orderId: response.data.id,
                 expireAt: addDays(new Date(), 3),
+                items: {
+                  create: [
+                    {
+                      amount: 1,
+                      type: "recurring",
+                      value: valueClientAll / 100,
+                    },
+                  ],
+                },
               },
             });
           })

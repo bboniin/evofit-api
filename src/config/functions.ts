@@ -57,3 +57,7 @@ export function validatePhone(phone) {
   const phoneRegex = /^(?:\+55\s?)?\(?[1-9]{2}\)?\s?[9]?[6-9]\d{3}-?\d{4}$/;
   return phoneRegex.test(phone);
 }
+
+export function getValue(value) {
+  return value.toLocaleString("pt-br", { style: "currency", currency: "BRL" });
+}

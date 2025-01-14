@@ -193,16 +193,23 @@ class BuyBookingService {
       .then(async (response) => {
         order = await prismaClient.payment.create({
           data: {
-            name: "Aula Personal",
+            description: "Aula Personal",
             professionalId,
             clientId: client.id,
-            valueUnit: professional.valueLesson,
-            amount: 1,
-            type: "LESSON",
+            type: "diary",
             rate: (valuePaid - valueLessonAll) / 100,
             value: valueLessonAll / 100,
             orderId: response.data.id,
             expireAt: addMinutes(new Date(), 30),
+            items: {
+              create: [
+                {
+                  type: "lesson",
+                  value: professional.valueLesson,
+                  amount: 1,
+                },
+              ],
+            },
           },
         });
 
@@ -212,6 +219,7 @@ class BuyBookingService {
             clientId: client.id,
             startTime: startTime,
             paymentId: order["id"],
+            spaceId: client.id,
             date: date,
             endTime: endTime,
             status: "pending",

@@ -10,7 +10,7 @@ class ChargePaymentService {
     const clients = await prismaClient.clientsProfessional.findMany({
       where: {
         dayDue: day + 1,
-        status: "paid",
+        status: "active",
       },
       include: {
         professional: true,
@@ -24,7 +24,7 @@ class ChargePaymentService {
 
     await prismaClient.clientsProfessional.updateMany({
       where: {
-        dayDue: day,
+        dayDue: day - 1,
         status: "awaiting_payment",
       },
       data: {
@@ -34,8 +34,8 @@ class ChargePaymentService {
 
     await prismaClient.clientsProfessional.updateMany({
       where: {
-        dayDue: day - 1,
-        status: "paid",
+        dayDue: day + 1,
+        status: "active",
       },
       data: {
         status: "awaiting_payment",
@@ -113,16 +113,23 @@ class ChargePaymentService {
           .then(async (response) => {
             await prismaClient.payment.create({
               data: {
-                name: "Mensalidade",
+                description: "Mensalidade",
                 professionalId: client.professionalId,
                 clientId: client.id,
-                valueUnit: client.value,
-                amount: 1,
-                type: "RECURRING",
+                type: "recurring",
                 value: valueClientAll / 100,
                 rate: (valuePaid - valueClientAll) / 100,
                 orderId: response.data.id,
                 expireAt: addDays(new Date(), 3),
+                items: {
+                  create: [
+                    {
+                      type: "recurring",
+                      amount: 1,
+                      value: client.value,
+                    },
+                  ],
+                },
               },
             });
           })

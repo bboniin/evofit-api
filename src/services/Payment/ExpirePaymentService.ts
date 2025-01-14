@@ -10,6 +10,9 @@ class ExpirePaymentService {
         },
         status: "pending",
       },
+      include: {
+        items: true,
+      },
     });
 
     await prismaClient.payment.updateMany({
@@ -32,27 +35,18 @@ class ExpirePaymentService {
     );
 
     payments.map(async (payment) => {
-      if (payment.type == "RECURRING") {
-        await prismaClient.clientsProfessional.update({
-          where: {
-            professionalId_clientId: {
-              professionalId: payment.professionalId,
-              clientId: payment.clientId,
-            },
-          },
-          data: {
-            status: "cancelled",
-          },
-        });
+      const type =
+        payment.items.length == 2 ? "multiple" : payment.items[0].type;
 
+      if (type == "recurring") {
         await client.createNotification({
           headings: {
             en: "Mensalidade cancelada",
             pt: "Mensalidade cancelada",
           },
           contents: {
-            en: "Por falta de pagamento, suas aulas com o personal foram suspensas",
-            pt: "Por falta de pagamento, suas aulas com o personal foram suspensas",
+            en: "Pagamento cancelado, entre em contato com seu personal para ficar em dia",
+            pt: "Pagamento cancelado, entre em contato com seu personal para ficar em dia",
           },
           data: {
             screen: "PaymentClient",
@@ -66,14 +60,14 @@ class ExpirePaymentService {
           data: {
             title: "Mensalidade cancelada",
             message:
-              "Por falta de pagamento, suas aulas com o personal foram suspensas",
+              "Pagamento cancelado, entre em contato com seu personal para ficar em dia",
             type: "PaymentClient",
             dataId: payment.id,
             userId: payment.clientId,
           },
         });
       } else {
-        if (payment.type == "DIARY") {
+        if (type == "diary") {
           await client.createNotification({
             headings: {
               en: "Pedido cancelado",
@@ -90,15 +84,6 @@ class ExpirePaymentService {
               },
             },
             include_external_user_ids: [payment.clientId],
-          });
-
-          await prismaClient.diary.updateMany({
-            where: {
-              paymentId: payment.id,
-            },
-            data: {
-              status: "cancelled",
-            },
           });
 
           await prismaClient.notification.create({

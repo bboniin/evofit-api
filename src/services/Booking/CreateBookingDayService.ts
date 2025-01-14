@@ -11,7 +11,7 @@ class CreateBookingDayService {
         clientProfessional: {
           OR: [
             {
-              status: "paid",
+              status: "active",
             },
             {
               status: "overdue",
@@ -23,6 +23,7 @@ class CreateBookingDayService {
         clientProfessional: {
           include: {
             client: true,
+            space: true,
           },
         },
       },
@@ -37,8 +38,8 @@ class CreateBookingDayService {
             startTime: item.startTime,
             date: new Date(),
             endTime: item.endTime,
-            academy: item.clientProfessional.academy || "",
-            status: "confirm",
+            spaceId: item.clientProfessional.spaceId,
+            status: "confirmed",
           },
         });
       })

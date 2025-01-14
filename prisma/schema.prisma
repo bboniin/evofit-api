@@ -124,6 +124,7 @@ model Space {
   payments                Payment[]
   diaries                 Diary[]    
   ratings                 Rating[]    
+  clientsProfessional      ClientsProfessional[]
 
   user                    User?                       @relation(fields: [userId], references: [id])
 
@@ -183,7 +184,7 @@ model SpaceHours {
   startTime               String                     
   endTime                 String                     
 
-  space                   Space                       @relation(fields: [spaceId], references: [userId])
+  space                   Space                       @relation(fields: [spaceId], references: [id])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt 
@@ -226,7 +227,7 @@ model Booking {
   status                  BookingStatus               @default(pending)  
   presence                String?                         
   paymentId               String?                     @unique           
-  academy                 String?                                                     
+  spaceId                 String                                                     
   scheduleId              String? 
 
   client                  Client                      @relation(fields: [clientId], references: [userId])
@@ -240,10 +241,10 @@ model Booking {
 
 model ProfessionalSpace {
   id                      String                      @id @default(uuid())
-  professionalId          String               
+  professionalId          String                      
   spaceId                 String                       
   professional            Professional                @relation(fields: [professionalId], references: [userId])
-  space                   Space                       @relation(fields: [spaceId], references: [userId])
+  space                   Space                       @relation(fields: [spaceId], references: [id])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -255,14 +256,13 @@ model Diary {
   id                      String                      @id @default(uuid())
   clientId                String               
   spaceId                 String                
-  paymentId               String     
+  itemId                  String     
   used                    Boolean     
   dateUsed                DateTime                    @default(now())    
-  status                  String                      @default("pending") 
 
   client                  Client                      @relation(fields: [clientId], references: [userId])
-  space                   Space                       @relation(fields: [spaceId], references: [userId])
-  payment                 Payment                     @relation(fields: [paymentId], references: [id])
+  space                   Space                       @relation(fields: [spaceId], references: [id])
+  item                    Item                        @relation(fields: [itemId], references: [id])
 
   createdAt               DateTime                    @default(now())
 
@@ -279,13 +279,15 @@ model ClientsProfessional {
   dayDue                  Int                         @default(1)
   datePayment             DateTime                    @default(now()) 
   consultancy             Boolean                      
-  academy                 String?  
+  spaceId                 String?  
   value                   Float         
   professionalId          String
   clientId                String?   
+  visible                 Boolean                     @default(true)
 
   professional            Professional                @relation(fields: [professionalId], references: [userId])
   client                  Client?                     @relation(fields: [clientId], references: [userId])
+  space                   Space?                      @relation(fields: [spaceId], references: [id])
 
   payments                Payment[]
   schedules               Schedule[]                  
@@ -302,26 +304,25 @@ model ClientsProfessional {
 
 model Payment {
   id                      String                      @id @default(uuid())
-  name                    String
+  description             String
   value                   Float  
+  valueRefunded           Float                       @default(0)
   clientId                String
   orderId                 String                      @unique
   status                  String                      @default("pending") 
-  type                    TypePayment                   
   clientProfessionalId    String? 
   professionalId          String? 
+  type                    TypePayment                 
   spaceId                 String?  
   recurring               Boolean                     @default(false)
-  amount                  Int 
   rate                    Float                       @default(0)
-  valueUnit               Float  
 
   professional            Professional?               @relation(fields: [professionalId], references: [userId])
   clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id])
   space                   Space?                      @relation(fields: [spaceId], references: [userId])
   client                  Client                      @relation(fields: [clientId], references: [userId])  
 
-  diaries                 Diary[] 
+  items                   Item[] 
 
   date                    DateTime                    @default(now())
   expireAt                DateTime                    @default(now())         
@@ -361,6 +362,22 @@ model Rating {
   updatedAt               DateTime                    @updatedAt @default(now())
 
   @@map("ratings")
+}
+
+model Item {
+  id                      String                      @id @default(uuid())
+  amount                  Int   
+  value                   Float   
+  paymentId               String  
+  type                    TypeItem
+
+  diaries                 Diary[] 
+  payment                 Payment?                    @relation(fields: [paymentId], references: [id])         
+
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt @default(now())
+
+  @@map("items")
 }
 
 model Message {
@@ -406,21 +423,34 @@ enum Role {
 }
 
 enum BookingStatus {
-  confirm
+  confirmed
   pending
   cancelled
 }
 
 enum Status {
-  awaiting_registration
+  registration_pending
   awaiting_payment
-  paid
+  active
   overdue
   cancelled
 }
 
+enum StatusPayment {
+  pending
+  paid
+  cancelled
+}
+
 enum TypePayment {
-  DIARY
-  RECURRING
-  LESSON
+  multiple
+  diary
+  recurring
+  lesson
+}
+
+enum TypeItem {
+  diary
+  recurring
+  lesson
 }

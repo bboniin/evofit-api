@@ -1,23 +1,26 @@
-import prismaClient from '../../prisma'
+import prismaClient from "../../prisma";
 
 interface ClientRequest {
-    userId: string;
+  userId: string;
 }
 
 class ListClientsProfessionalService {
-    async execute({ userId }: ClientRequest) {
+  async execute({ userId }: ClientRequest) {
+    const clients = await prismaClient.clientsProfessional.findMany({
+      where: {
+        professionalId: userId,
+        visible: true,
+        status: {
+          not: "cancelled",
+        },
+      },
+      include: {
+        client: true,
+      },
+    });
 
-        const clients = await prismaClient.clientsProfessional.findMany({
-            where: {
-                professionalId: userId,
-            },
-            include: {
-                client: true
-            }
-        })
-
-        return (clients)
-    }
+    return clients;
+  }
 }
 
-export { ListClientsProfessionalService }
+export { ListClientsProfessionalService };

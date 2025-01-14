@@ -51,14 +51,17 @@ class CreatePaymentService {
         client: true,
         professional: true,
         space: true,
+        items: true,
       },
     });
+
+    const type = payment.items.length == 2 ? "multiple" : payment.items[0].type;
 
     if (!payment) {
       throw new Error("Pagamento não encontrado");
     }
 
-    if (payment.type == "RECURRING") {
+    if (type == "recurring") {
       await sendNotification(
         "Mensalidade Pendente",
         "Efetue o pagamento da mensalidade",
@@ -74,7 +77,7 @@ class CreatePaymentService {
         "professional"
       );
     } else {
-      if (payment.type == "LESSON") {
+      if (type == "lesson") {
         await sendNotification(
           "Pedido realizado",
           "Efetue o pagamento para confirmar sua aula",
@@ -91,21 +94,46 @@ class CreatePaymentService {
           "professional"
         );
       } else {
-        await sendNotification(
-          "Pedido realizado",
-          "Efetue o pagamento para confirmar suas diárias",
-          payment.clientId,
-          payment,
-          "client"
-        );
+        if (type == "diary") {
+          await sendNotification(
+            "Pedido realizado",
+            "Efetue o pagamento para confirmar suas diárias",
+            payment.clientId,
+            payment,
+            "client"
+          );
 
-        await sendNotification(
-          "Novo pedido",
-          `${payment.client.name} fez um pedido`,
-          payment.spaceId,
-          payment,
-          "space"
-        );
+          await sendNotification(
+            "Novo pedido",
+            `${payment.client.name} fez um pedido`,
+            payment.spaceId,
+            payment,
+            "space"
+          );
+        } else {
+          await sendNotification(
+            "Pedido realizado",
+            "Efetue o pagamento para confirmar sua aula e diária",
+            payment.clientId,
+            payment,
+            "client"
+          );
+
+          await sendNotification(
+            "Novo pedido",
+            `${payment.client.name} fez um pedido`,
+            payment.spaceId,
+            payment,
+            "space"
+          );
+          await sendNotification(
+            "Novo pedido",
+            `${payment.client.name} fez um pedido`,
+            payment.spaceId,
+            payment,
+            "space"
+          );
+        }
       }
     }
 

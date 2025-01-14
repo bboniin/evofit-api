@@ -50,6 +50,7 @@ class ConfirmPaymentService {
         client: true,
         professional: true,
         space: true,
+        items: true,
       },
     });
 
@@ -57,7 +58,9 @@ class ConfirmPaymentService {
       throw new Error("Pagamento não encontrado");
     }
 
-    if (payment.type == "RECURRING") {
+    const type = payment.items.length == 2 ? "multiple" : payment.items[0].type;
+
+    if (type == "recurring") {
       await prismaClient.clientsProfessional.update({
         where: {
           professionalId_clientId: {
@@ -66,7 +69,7 @@ class ConfirmPaymentService {
           },
         },
         data: {
-          status: "paid",
+          status: "active",
         },
       });
       await sendNotification(
@@ -84,7 +87,7 @@ class ConfirmPaymentService {
         "professional"
       );
     } else {
-      if (payment.type == "LESSON") {
+      if (type == "lesson") {
         await sendNotification(
           "Pedido confirmado",
           "Sua aula está confirmada",
@@ -105,7 +108,7 @@ class ConfirmPaymentService {
             paymentId: payment.id,
           },
           data: {
-            status: "confirm",
+            status: "confirmed",
           },
         });
       } else {
@@ -124,14 +127,17 @@ class ConfirmPaymentService {
           payment,
           "space"
         );
-        await prismaClient.diary.updateMany({
-          where: {
-            paymentId: payment.id,
-          },
-          data: {
-            status: "paid",
-          },
-        });
+
+        for (let i = 0; i < payment.items[0].amount; i++) {
+          await prismaClient.diary.create({
+            data: {
+              spaceId: payment.space.id,
+              clientId: payment.client.id,
+              itemId: payment.items[0].id,
+              used: false,
+            },
+          });
+        }
       }
     }
 

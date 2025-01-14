@@ -1,9 +1,11 @@
+import { getValue } from "../../config/functions";
 import prismaClient from "../../prisma";
+import * as OneSignal from "onesignal-node";
 
 interface ClientRequest {
   name: string;
   clientId: string;
-  academy: string;
+  spaceId: string;
   value: number;
   dayDue: number;
   schedule: Array<{
@@ -17,7 +19,7 @@ class EditClientProfessionalService {
   async execute({
     name,
     clientId,
-    academy,
+    spaceId,
     value,
     dayDue,
     schedule,
@@ -25,7 +27,7 @@ class EditClientProfessionalService {
     if (
       !name ||
       !clientId ||
-      !academy ||
+      !spaceId ||
       !value ||
       !dayDue ||
       !schedule.length
@@ -35,7 +37,7 @@ class EditClientProfessionalService {
 
     let data = {
       name: name,
-      academy: academy,
+      spaceId: spaceId,
       value: value,
       dayDue: dayDue,
     };
@@ -51,17 +53,110 @@ class EditClientProfessionalService {
       throw new Error("Cliente não encontrado");
     }
 
-    const client = await prismaClient.clientsProfessional.update({
+    if (spaceId) {
+      const space = await prismaClient.space.findUnique({
+        where: {
+          id: spaceId,
+        },
+      });
+
+      if (!space) {
+        throw new Error("Academia não encontrada");
+      }
+    }
+
+    const clientProfessional = await prismaClient.clientsProfessional.update({
       where: {
         id: clientId,
       },
       data: data,
       include: {
         schedules: true,
+        professional: true,
       },
     });
 
-    const arraysDelete = client.schedules.filter(
+    if (
+      clientProfessional.clientId &&
+      clientProfessional.status != "registration_pending"
+    ) {
+      const client = new OneSignal.Client(
+        "15ee78c4-6dab-4cb5-a606-1bb5b12170e1",
+        "OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw"
+      );
+      if (clientProfessional.value != clientAlreadyExists.value) {
+        await client.createNotification({
+          headings: {
+            en: "Valor da Mensalidade Alterado",
+            pt: "Valor da Mensalidade Alterado",
+          },
+          contents: {
+            en: `${clientProfessional.professional.name.toUpperCase()} alterou o valor da mensalidade para ${getValue(
+              clientProfessional.value
+            )}`,
+            pt: `${clientProfessional.professional.name.toUpperCase()} alterou o valor da mensalidade para ${getValue(
+              clientProfessional.value
+            )}`,
+          },
+          data: {
+            screen: "ClientSchedule",
+            params: {
+              id: clientProfessional.id,
+            },
+          },
+          include_external_user_ids: [clientProfessional.clientId],
+        });
+
+        await prismaClient.notification.create({
+          data: {
+            title: "Data de Vencimento Alterada",
+            message: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
+              clientProfessional.dayDue
+            }`,
+            type: "ClientSchedule",
+            dataId: clientProfessional.id,
+            userId: clientProfessional.clientId,
+          },
+        });
+      }
+      if (clientProfessional.dayDue != clientAlreadyExists.dayDue) {
+        await client.createNotification({
+          headings: {
+            en: "Data de Vencimento Alterada",
+            pt: "Data de Vencimento Alterada",
+          },
+          contents: {
+            en: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
+              clientProfessional.dayDue
+            }`,
+            pt: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
+              clientProfessional.dayDue
+            }`,
+          },
+          data: {
+            screen: "ClientSchedule",
+            params: {
+              id: clientProfessional.id,
+            },
+          },
+          include_external_user_ids: [clientProfessional.clientId],
+        });
+
+        await prismaClient.notification.create({
+          data: {
+            title: "Data de Vencimento Alterada",
+            message: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
+              clientProfessional.dayDue
+            }`,
+            type: "ClientSchedule",
+            dataId: clientProfessional.id,
+            userId: clientProfessional.clientId,
+          },
+        });
+      }
+    }
+
+    const arraysDelete = clientProfessional.schedules.filter(
       (item) =>
         schedule.findIndex((data) => data.dayOfWeek == item.dayOfWeek) == -1
     );
@@ -82,8 +177,8 @@ class EditClientProfessionalService {
         const scheduleDay = await prismaClient.schedule.findUnique({
           where: {
             professionalId_clientProfessionalId_dayOfWeek: {
-              professionalId: client.professionalId,
-              clientProfessionalId: client.id,
+              professionalId: clientProfessional.professionalId,
+              clientProfessionalId: clientProfessional.id,
               dayOfWeek: item.dayOfWeek,
             },
           },
@@ -102,8 +197,8 @@ class EditClientProfessionalService {
         } else {
           await prismaClient.schedule.create({
             data: {
-              professionalId: client.professionalId,
-              clientProfessionalId: client.id,
+              professionalId: clientProfessional.professionalId,
+              clientProfessionalId: clientProfessional.id,
               dayOfWeek: item.dayOfWeek,
               startTime: item.startTime,
               endTime: item.endTime,
@@ -116,7 +211,7 @@ class EditClientProfessionalService {
       })
     );
 
-    return client;
+    return clientProfessional;
   }
 }
 

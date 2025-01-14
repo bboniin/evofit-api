@@ -73,6 +73,34 @@ class CreateProfessionalService {
       }
     }
 
+    const userAlreadyExistsCPF = await prismaClient.user.findFirst({
+      where: {
+        OR: [
+          {
+            space: {
+              cpfOrCnpj: cpfOrCnpjString,
+            },
+          },
+          {
+            client: {
+              cpf: cpfOrCnpjString,
+            },
+          },
+          {
+            professional: {
+              cpfOrCnpj: cpfOrCnpjString,
+            },
+          },
+        ],
+      },
+    });
+
+    if (userAlreadyExistsCPF) {
+      throw new Error(
+        typeUser == "PF" ? "CPF já está em uso" : "CNPJ já está em uso"
+      );
+    }
+
     if (!validateEmail(email)) {
       throw new Error("Email inválido");
     }
@@ -87,7 +115,7 @@ class CreateProfessionalService {
       name: name,
       birthday: new Date(birthday),
       phoneNumber: phoneNumber,
-      cpfOrCnpj: cpfOrCnpj.replace(/\D/g, ""),
+      cpfOrCnpj: cpfOrCnpjString,
       typeUser: typeUser,
       cref: cref,
       description: description,
