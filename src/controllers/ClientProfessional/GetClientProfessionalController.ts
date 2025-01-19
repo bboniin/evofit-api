@@ -3,14 +3,14 @@ import { GetClientProfessionalService } from "../../services/ClientProfessional/
 
 class GetClientProfessionalController {
   async handle(req: Request, res: Response) {
-    const { id } = req.params;
+    const { clientId } = req.params;
 
     const userId = req.userId;
 
     const getClientProfessionalService = new GetClientProfessionalService();
 
     const clientProfessional = await getClientProfessionalService.execute({
-      id,
+      clientId,
       userId,
     });
     if (clientProfessional.client?.photo) {

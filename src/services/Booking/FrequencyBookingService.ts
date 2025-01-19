@@ -1,35 +1,35 @@
-import { endOfDay } from 'date-fns';
-import prismaClient from '../../prisma';
+import { addDays, endOfDay } from "date-fns";
+import prismaClient from "../../prisma";
 
 interface UserRequest {
-    userId: string;
+  userId: string;
 }
 
 class FrequencyBookingService {
-    async execute({ userId }: UserRequest) {
+  async execute({ userId }: UserRequest) {
+    const client = await prismaClient.client.findUnique({
+      where: {
+        userId: userId,
+      },
+    });
 
-        const client = await prismaClient.client.findUnique({
-            where: { 
-                userId: userId
-             }
-        });
-
-        if (!client) {
-            throw new Error('Cliente não encontrado');
-        }
-
-        const bookings = await prismaClient.booking.findMany({
-            where: {
-                clientId: client.id,
-                date: {lte: endOfDay(new Date())}
-            },
-            include: {
-                professional: true
-            }
-        });
-
-        return bookings;
+    if (!client) {
+      throw new Error("Cliente não encontrado");
     }
+
+    const bookings = await prismaClient.booking.findMany({
+      where: {
+        clientId: client.id,
+        date: { lte: endOfDay(addDays(new Date(), -1)) },
+      },
+      include: {
+        professional: true,
+        space: true,
+      },
+    });
+
+    return bookings;
+  }
 }
 
 export { FrequencyBookingService };

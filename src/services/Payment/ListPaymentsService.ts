@@ -32,6 +32,9 @@ class ListPaymentsService {
                 professionalId: userId,
               },
             ],
+            status: {
+              not: "cancelled",
+            },
           }
         : {
             OR: [

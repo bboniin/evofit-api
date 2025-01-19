@@ -39,7 +39,6 @@ import { DeleteScheduleProfessionalController } from "./controllers/Schedule/Del
 import { DayScheduleProfessionalController } from "./controllers/Schedule/DayScheduleProfessionalService";
 import { ListScheduleProfessionalController } from "./controllers/Schedule/ListScheduleProfessionalController";
 import { EditScheduleProfessionalController } from "./controllers/Schedule/EditScheduleProfessionalController";
-import { BuyBookingController } from "./controllers/Booking/BuyBookingController";
 import { MyBookingController } from "./controllers/Booking/MyBookingController";
 import { FrequencyBookingController } from "./controllers/Booking/FrequencyBookingController";
 import { DayWeekScheduleProfessionalController } from "./controllers/Schedule/DayWeekScheduleProfessionalService";
@@ -76,6 +75,8 @@ import { ListNotificationsController } from "./controllers/Notification/ListNoti
 import { OpenNotificationsController } from "./controllers/Notification/OpenNotificationsController";
 import { SpaceHistoricDiariesController } from "./controllers/Diary/SpaceHistoricDiariesController";
 import { ClientHistoricDiariesController } from "./controllers/Diary/ClientHistoricDiariesController";
+import { BuyConsultancyController } from "./controllers/ClientProfessional/BuyConsultancyController";
+import { GetBookingController } from "./controllers/Booking/GetBookingController";
 
 const upload = multer(uploadConfig);
 
@@ -193,7 +194,7 @@ router.put(
   new EditClientProfessionalController().handle
 );
 router.get(
-  "/professional/client/:id",
+  "/professional/client/:clientId",
   new GetClientProfessionalController().handle
 );
 router.get(
@@ -250,6 +251,7 @@ router.get("/chats", new ListChatsController().handle);
 router.get("/chat/:recipientId", new GetChatController().handle);
 
 router.post("/order", new CreateOrderController().handle);
+router.post("/consultancy", new BuyConsultancyController().handle);
 router.get("/diaries", new ClientDiariesController().handle);
 router.get("/diaries/space", new SpaceDiariesController().handle);
 router.get("/historic/diaries", new ClientHistoricDiariesController().handle);
@@ -275,6 +277,8 @@ router.get("/withdrawals", new GetWithdrawalsController().handle);
 router.post("/withdrawal", new CreateWithdrawalController().handle);
 
 router.get("/notifications", new ListNotificationsController().handle);
-router.post("/notifications", new OpenNotificationsController().handle);
+router.put("/notifications", new OpenNotificationsController().handle);
+
+router.get("/booking/:bookingId", new GetBookingController().handle);
 
 export { router };

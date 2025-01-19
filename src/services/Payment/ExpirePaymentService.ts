@@ -8,7 +8,7 @@ class ExpirePaymentService {
         expireAt: {
           lte: new Date(),
         },
-        status: "pending",
+        status: "awaiting_payment",
       },
       include: {
         items: true,
@@ -21,7 +21,7 @@ class ExpirePaymentService {
           expireAt: {
             lte: new Date(),
           },
-          status: "pending",
+          status: "awaiting_payment",
         },
       },
       data: {
@@ -66,6 +66,21 @@ class ExpirePaymentService {
             userId: payment.clientId,
           },
         });
+
+        if (payment.description == "Adesão Consultoria") {
+          await prismaClient.clientsProfessional.update({
+            where: {
+              professionalId_clientId: {
+                professionalId: payment.professionalId,
+                clientId: payment.clientId,
+              },
+              consultancy: true,
+            },
+            data: {
+              status: "cancelled",
+            },
+          });
+        }
       } else {
         if (type == "diary") {
           await client.createNotification({

@@ -31,6 +31,7 @@ class DeleteClientProfessionalService {
         },
         data: {
           status: "cancelled",
+          clientId: null,
           email: clientAlreadyExists.id + "/" + clientAlreadyExists.email,
         },
       });

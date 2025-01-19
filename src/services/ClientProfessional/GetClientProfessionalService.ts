@@ -1,18 +1,19 @@
 import prismaClient from "../../prisma";
 
 interface ClientRequest {
-  id: string;
+  clientId: string;
   userId: string;
 }
 
 class GetClientProfessionalService {
-  async execute({ id, userId }: ClientRequest) {
+  async execute({ clientId, userId }: ClientRequest) {
     const client = await prismaClient.clientsProfessional.findUnique({
       where: {
-        id: id,
+        id: clientId,
         professionalId: userId,
       },
       include: {
+        space: true,
         client: {
           include: {
             payments: {

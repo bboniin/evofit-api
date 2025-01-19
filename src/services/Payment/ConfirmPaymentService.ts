@@ -70,6 +70,7 @@ class ConfirmPaymentService {
         },
         data: {
           status: "active",
+          visible: true,
         },
       });
       await sendNotification(
@@ -81,7 +82,7 @@ class ConfirmPaymentService {
       );
       await sendNotification(
         "Pagamento confirmado",
-        `${payment.client.name} pagou a mensalidade`,
+        `${payment.client.name.toUpperCase()} pagou a mensalidade`,
         payment.professionalId,
         payment,
         "professional"
@@ -98,7 +99,7 @@ class ConfirmPaymentService {
 
         await sendNotification(
           "Pagamento confirmado",
-          `${payment.client.name} confirmou sua reserva`,
+          `${payment.client.name.toUpperCase()} confirmou sua reserva`,
           payment.professionalId,
           payment,
           "professional"
@@ -112,28 +113,72 @@ class ConfirmPaymentService {
           },
         });
       } else {
-        await sendNotification(
-          "Pedido confirmado",
-          "Suas diárias estão confirmadas",
-          payment.clientId,
-          payment,
-          "client"
-        );
+        if (type == "diary") {
+          await sendNotification(
+            "Pedido confirmado",
+            "Suas diárias estão confirmadas",
+            payment.clientId,
+            payment,
+            "client"
+          );
 
-        await sendNotification(
-          "Pagamento confirmado",
-          `${payment.client.name} confirmou suas diárias`,
-          payment.spaceId,
-          payment,
-          "space"
-        );
+          await sendNotification(
+            "Pagamento confirmado",
+            `${payment.client.name.toUpperCase()} confirmou suas diárias`,
+            payment.spaceId,
+            payment,
+            "space"
+          );
 
-        for (let i = 0; i < payment.items[0].amount; i++) {
+          for (let i = 0; i < payment.items[0].amount; i++) {
+            await prismaClient.diary.create({
+              data: {
+                spaceId: payment.space.id,
+                clientId: payment.client.id,
+                itemId: payment.items[0].id,
+                used: false,
+              },
+            });
+          }
+        } else {
+          await sendNotification(
+            "Pedido confirmado",
+            "Sua aula pessoal e diária estão confirmadas",
+            payment.clientId,
+            payment,
+            "client"
+          );
+
+          await sendNotification(
+            "Pagamento confirmado",
+            `${payment.client.name.toUpperCase()} confirmou sua diária`,
+            payment.spaceId,
+            payment,
+            "space"
+          );
+
+          await sendNotification(
+            "Pagamento confirmado",
+            `${payment.client.name.toUpperCase()} confirmou sua reserva`,
+            payment.professionalId,
+            payment,
+            "professional"
+          );
+
+          await prismaClient.booking.updateMany({
+            where: {
+              paymentId: payment.id,
+            },
+            data: {
+              status: "confirmed",
+            },
+          });
+
           await prismaClient.diary.create({
             data: {
               spaceId: payment.space.id,
               clientId: payment.client.id,
-              itemId: payment.items[0].id,
+              itemId: payment.items.find((data) => data.type == "diary").id,
               used: false,
             },
           });

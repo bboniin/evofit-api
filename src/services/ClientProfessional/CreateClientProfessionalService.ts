@@ -1,10 +1,4 @@
-import {
-  addDays,
-  differenceInSeconds,
-  endOfDay,
-  getDay,
-  setDate,
-} from "date-fns";
+import { addDays, differenceInSeconds, getDate } from "date-fns";
 import * as OneSignal from "onesignal-node";
 import api from "../../config/api";
 import prismaClient from "../../prisma";
@@ -94,7 +88,7 @@ class CreateClientProfessionalService {
       },
     });
 
-    const day = getDay(new Date());
+    const day = getDate(new Date());
 
     if (userAlreadyExists) {
       throw new Error("Email já está sendo usado por outro tipo de usuário");
@@ -118,6 +112,9 @@ class CreateClientProfessionalService {
           where: {
             clientId: clientAlreadyExists.id,
             professionalId: professionalId,
+            status: {
+              not: "cancelled",
+            },
           },
         });
 
@@ -130,7 +127,7 @@ class CreateClientProfessionalService {
       data: {
         ...data,
         status: data["clientId"]
-          ? day > dayDue
+          ? dayDue > day
             ? "overdue"
             : "active"
           : "registration_pending",
@@ -199,7 +196,7 @@ class CreateClientProfessionalService {
         },
       });
 
-      if (clientProfessional.dayDue + 1 >= day) {
+      if (clientProfessional.dayDue >= day + 1) {
         await api
           .post("/orders", {
             closed: true,

@@ -16,6 +16,7 @@ class ListClientsProfessionalService {
       },
       include: {
         client: true,
+        space: true,
       },
     });
 

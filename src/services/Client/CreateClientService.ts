@@ -3,7 +3,7 @@ import prismaClient from "../../prisma";
 import { sign } from "jsonwebtoken";
 import authConfig from "../../utils/auth";
 import api from "../../config/api";
-import { addDays, addMinutes } from "date-fns";
+import { addDays, getDate } from "date-fns";
 import {
   validateCpf,
   validateEmail,
@@ -131,6 +131,8 @@ class CreateClientService {
       },
     });
 
+    const day = getDate(new Date());
+
     await Promise.all(
       clients.map(async (item) => {
         const clientUp = await prismaClient.clientsProfessional.update({
@@ -139,7 +141,12 @@ class CreateClientService {
           },
           data: {
             clientId: user.id,
-            status: "registration_pending",
+            status:
+              day == item.dayDue || day + 1 == item.dayDue
+                ? "awaiting_payment"
+                : item.dayDue > day
+                ? "overdue"
+                : "active",
           },
           include: {
             client: {
@@ -151,102 +158,104 @@ class CreateClientService {
           },
         });
 
-        const valueClientAll = clientUp.value * 100;
-        const valuePaid = valueClientAll * 1.02;
+        if (item.dayDue >= day + 1) {
+          const valueClientAll = clientUp.value * 100;
+          const valuePaid = valueClientAll * 1.02;
 
-        await api
-          .post("/orders", {
-            closed: true,
-            items: [
-              {
-                amount: valuePaid,
-                description: `Mensalidade ${
-                  item.consultancy ? "Consultoria" : "Personal"
-                }`,
-                quantity: 1,
-                code: 1,
-              },
-            ],
-            customer: {
-              name: clientUp.client.name,
-              type: "individual",
-              document: clientUp.client.cpf,
-              email: clientUp.client.user.email,
-              phones: {
-                mobile_phone: {
-                  country_code: "55",
-                  number: "000000000",
-                  area_code: "11",
+          await api
+            .post("/orders", {
+              closed: true,
+              items: [
+                {
+                  amount: valuePaid,
+                  description: `Mensalidade ${
+                    item.consultancy ? "Consultoria" : "Personal"
+                  }`,
+                  quantity: 1,
+                  code: 1,
+                },
+              ],
+              customer: {
+                name: clientUp.client.name,
+                type: "individual",
+                document: clientUp.client.cpf,
+                email: clientUp.client.user.email,
+                phones: {
+                  mobile_phone: {
+                    country_code: "55",
+                    number: "000000000",
+                    area_code: "11",
+                  },
                 },
               },
-            },
-            payments: [
-              {
-                payment_method: "pix",
-                pix: {
-                  expires_in: 259200,
-                  additional_information: [
+              payments: [
+                {
+                  payment_method: "pix",
+                  pix: {
+                    expires_in: 259200,
+                    additional_information: [
+                      {
+                        name: "information",
+                        value: "number",
+                      },
+                    ],
+                  },
+                  split: [
                     {
-                      name: "information",
-                      value: "number",
+                      amount: valueClientAll,
+                      recipient_id: clientUp.professional.recipientId,
+                      type: "flat",
+                      options: {
+                        charge_processing_fee: false,
+                        charge_remainder_fee: false,
+                        liable: false,
+                      },
+                    },
+                    {
+                      amount: valuePaid - valueClientAll,
+                      recipient_id: "re_cm2uxwdzw3j720m9tiinncic7",
+                      type: "flat",
+                      options: {
+                        charge_processing_fee: true,
+                        charge_remainder_fee: true,
+                        liable: true,
+                      },
                     },
                   ],
                 },
-                split: [
-                  {
-                    amount: valueClientAll,
-                    recipient_id: clientUp.professional.recipientId,
-                    type: "flat",
-                    options: {
-                      charge_processing_fee: false,
-                      charge_remainder_fee: false,
-                      liable: false,
-                    },
+              ],
+            })
+            .then(async (response) => {
+              await prismaClient.payment.create({
+                data: {
+                  description: `Mensalidade ${
+                    clientUp.consultancy ? "Consultoria" : "Personal"
+                  }`,
+                  professionalId: clientUp.professionalId,
+                  clientId: client.id,
+                  recurring: true,
+                  type: "recurring",
+                  value: valueClientAll / 100,
+                  rate: (valuePaid - valueClientAll) / 100,
+                  orderId: response.data.id,
+                  expireAt: addDays(new Date(), 3),
+                  items: {
+                    create: [
+                      {
+                        amount: 1,
+                        type: "recurring",
+                        value: valueClientAll / 100,
+                      },
+                    ],
                   },
-                  {
-                    amount: valuePaid - valueClientAll,
-                    recipient_id: "re_cm2uxwdzw3j720m9tiinncic7",
-                    type: "flat",
-                    options: {
-                      charge_processing_fee: true,
-                      charge_remainder_fee: true,
-                      liable: true,
-                    },
-                  },
-                ],
-              },
-            ],
-          })
-          .then(async (response) => {
-            await prismaClient.payment.create({
-              data: {
-                description: `Mensalidade ${
-                  clientUp.consultancy ? "Consultoria" : "Personal"
-                }`,
-                professionalId: clientUp.professionalId,
-                clientId: client.id,
-                recurring: true,
-                type: "recurring",
-                value: valueClientAll / 100,
-                rate: (valuePaid - valueClientAll) / 100,
-                orderId: response.data.id,
-                expireAt: addDays(new Date(), 3),
-                items: {
-                  create: [
-                    {
-                      amount: 1,
-                      type: "recurring",
-                      value: valueClientAll / 100,
-                    },
-                  ],
                 },
-              },
+              });
+            })
+            .catch((e) => {
+              console.log(e.response.data);
+              throw new Error("Ocorreu um erro ao criar cobrança");
             });
-          })
-          .catch((e) => {
-            console.log(e.response.data);
-            throw new Error("Ocorreu um erro ao criar cobrança");
-          });
+        }
 
         return true;
       })

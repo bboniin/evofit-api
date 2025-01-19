@@ -48,6 +48,9 @@ class GetBalanceService {
             professionalId: userId,
           },
         ],
+        status: {
+          not: "cancelled",
+        },
       },
       orderBy: {
         date: "desc",

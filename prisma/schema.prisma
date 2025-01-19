@@ -124,7 +124,8 @@ model Space {
   payments                Payment[]
   diaries                 Diary[]    
   ratings                 Rating[]    
-  clientsProfessional      ClientsProfessional[]
+  clientsProfessional     ClientsProfessional[]
+  bookings                Booking[]
 
   user                    User?                       @relation(fields: [userId], references: [id])
 
@@ -225,13 +226,17 @@ model Booking {
   endTime                 String 
   date                    DateTime            
   status                  BookingStatus               @default(pending)  
-  presence                String?                         
+  status_attendance       AttendanceStatus            @default(not_completed)  
   paymentId               String?                     @unique           
   spaceId                 String                                                     
   scheduleId              String? 
 
+  ratings                 Rating[]    
+
   client                  Client                      @relation(fields: [clientId], references: [userId])
   professional            Professional                @relation(fields: [professionalId], references: [userId])
+  space                   Space                       @relation(fields: [spaceId], references: [id])
+  payment                 Payment?                    @relation(fields: [paymentId], references: [id])
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
@@ -309,7 +314,7 @@ model Payment {
   valueRefunded           Float                       @default(0)
   clientId                String
   orderId                 String                      @unique
-  status                  String                      @default("pending") 
+  status                  String                      @default("awaiting_payment") 
   clientProfessionalId    String? 
   professionalId          String? 
   type                    TypePayment                 
@@ -323,6 +328,7 @@ model Payment {
   client                  Client                      @relation(fields: [clientId], references: [userId])  
 
   items                   Item[] 
+  bookings                Booking[] 
 
   date                    DateTime                    @default(now())
   expireAt                DateTime                    @default(now())         
@@ -348,15 +354,17 @@ model Chat {
 
 model Rating {
   id                      String                      @id @default(uuid())
-  description             String
+  comment                 String
   rate                    Int   
   clientId                String                        
-  professionalId          String? 
+  bookingId               String?                     @unique 
+  professionalId          String?   
   spaceId                 String?  
 
   professional            Professional?               @relation(fields: [professionalId], references: [userId])
   space                   Space?                      @relation(fields: [spaceId], references: [userId])
-  client                  Client                      @relation(fields: [clientId], references: [userId])                      
+  client                  Client                      @relation(fields: [clientId], references: [userId])
+  booking                 Booking?                    @relation(fields: [bookingId], references: [id])                             
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -427,6 +435,11 @@ enum BookingStatus {
   pending
   cancelled
 }
+enum AttendanceStatus {
+  completed
+  not_completed
+  missed
+}
 
 enum Status {
   registration_pending
@@ -437,7 +450,7 @@ enum Status {
 }
 
 enum StatusPayment {
-  pending
+  awaiting_payment
   paid
   cancelled
 }

@@ -1,10 +1,10 @@
 import * as OneSignal from "onesignal-node";
 import prismaClient from "../../prisma";
-import { getDay } from "date-fns";
+import { getDate } from "date-fns";
 
 class NotificationPaymentService {
   async execute() {
-    const day = getDay(new Date());
+    const day = getDate(new Date());
 
     const clientsDayAfter = await prismaClient.clientsProfessional.findMany({
       where: {

@@ -13,6 +13,7 @@ class HistoricLessonService {
       },
       include: {
         professional: true,
+        space: true,
       },
     });
 

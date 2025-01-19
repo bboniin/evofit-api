@@ -3,9 +3,12 @@ import { EditClientProfessionalService } from "../../services/ClientProfessional
 
 class EditClientProfessionalController {
   async handle(req: Request, res: Response) {
-    const { name, spaceId, value, dayDue, schedule } = req.body;
+    const { name, spaceId, value, dayDue, schedule, email, consultancy } =
+      req.body;
 
     const { clientId } = req.params;
+
+    const userId = req.userId;
 
     const editClientProfessionalService = new EditClientProfessionalService();
 
@@ -16,6 +19,9 @@ class EditClientProfessionalController {
       value,
       dayDue,
       schedule,
+      professionalId: userId,
+      email,
+      consultancy,
     });
 
     return res.json(clientProfessional);

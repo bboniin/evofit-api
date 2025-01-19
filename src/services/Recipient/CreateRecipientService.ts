@@ -30,7 +30,7 @@ class CreateRecipientService {
     }
 
     const user = spaceOrProfessional.space || spaceOrProfessional.professional;
-    const userType = user.typeUser == "PJ" ? "corporation" : "individual";
+    const userType = user.typeUser == "PJ" ? "company" : "individual";
 
     const [account_number, account_check_digit] = account.split("-");
     const [branch_number, branch_check_digit] = branch.split("-");
@@ -44,6 +44,9 @@ class CreateRecipientService {
         description: "",
         document: user.cpfOrCnpj,
         type: userType,
+        company_name: user.name,
+        trading_name: user.name,
+        annual_revenue: 1000000,
         default_bank_account: {
           holder_name: user.name,
           holder_type: userType,
@@ -95,6 +98,7 @@ class CreateRecipientService {
         }
       })
       .catch((e) => {
+        console.log(e.response.data.errors);
         throw new Error("Ocorreu um erro ao adicionar conta bancária");
       });
 

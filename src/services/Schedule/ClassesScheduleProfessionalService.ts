@@ -22,6 +22,9 @@ class ClassesScheduleProfessionalService {
     const bookings = await prismaClient.booking.findMany({
       where: {
         professionalId,
+        status: {
+          not: "cancelled",
+        },
         AND: [
           {
             date: { gte: startOfDay(date) },
@@ -33,30 +36,44 @@ class ClassesScheduleProfessionalService {
       },
       include: {
         client: true,
+        space: true,
       },
     });
 
     const schedules = await prismaClient.schedule.findMany({
       where: {
         professionalId,
-        //id: {
-        //  notIn: bookings.map((booking) => booking.scheduleId),
-        //},
         OR: [{ recurring: true, dayOfWeek }, { date: date }],
-        isBlock: false,
         createdAt: { lte: startOfDay(date) },
+        AND: [
+          {
+            OR: [
+              { clientProfessional: null },
+              {
+                clientProfessional: {
+                  status: {
+                    not: "cancelled",
+                  },
+                },
+              },
+            ],
+          },
+        ],
       },
       include: {
         clientProfessional: {
           include: {
             client: true,
+            space: true,
           },
         },
       },
     });
 
     schedules.map((item) => {
-      item["client"] = item["clientProfessional"]["client"] || {};
+      if (item["clientProfessional"]) {
+        item["client"] = item["clientProfessional"]["client"] || {};
+      }
     });
 
     const classes = [...bookings, ...schedules].sort((a, b) =>

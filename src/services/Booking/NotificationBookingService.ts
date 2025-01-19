@@ -99,7 +99,7 @@ class NotificationBookingService {
           );
           await sendNotification(
             "Aula!",
-            `${booking.client.name} as ${booking.startTime}.`,
+            `${booking.client.name.toUpperCase()} as ${booking.startTime}.`,
             booking.professionalId,
             booking.id,
             "BookingProfessional"
@@ -115,7 +115,7 @@ class NotificationBookingService {
             );
             await sendNotification(
               "Aula!",
-              `${booking.client.name} as ${booking.startTime}.`,
+              `${booking.client.name.toUpperCase()} as ${booking.startTime}.`,
               booking.professionalId,
               booking.id,
               "BookingProfessional"

@@ -50,7 +50,9 @@ class DayWeekScheduleProfessionalService {
           },
         },
         clientProfessional: {
-          status: "active",
+          status: {
+            not: "cancelled",
+          },
         },
       },
     });

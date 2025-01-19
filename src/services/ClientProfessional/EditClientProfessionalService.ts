@@ -1,4 +1,5 @@
-import { getValue } from "../../config/functions";
+import { getDate } from "date-fns";
+import { getValue, validateEmail } from "../../config/functions";
 import prismaClient from "../../prisma";
 import * as OneSignal from "onesignal-node";
 
@@ -6,8 +7,11 @@ interface ClientRequest {
   name: string;
   clientId: string;
   spaceId: string;
+  email: string;
+  professionalId: string;
   value: number;
   dayDue: number;
+  consultancy: boolean;
   schedule: Array<{
     dayOfWeek: number;
     startTime: string;
@@ -21,14 +25,18 @@ class EditClientProfessionalService {
     clientId,
     spaceId,
     value,
+    email,
+    professionalId,
     dayDue,
     schedule,
+    consultancy,
   }: ClientRequest) {
     if (
       !name ||
       !clientId ||
-      !spaceId ||
+      (!consultancy && !spaceId) ||
       !value ||
+      !email ||
       !dayDue ||
       !schedule.length
     ) {
@@ -37,9 +45,11 @@ class EditClientProfessionalService {
 
     let data = {
       name: name,
-      spaceId: spaceId,
+      email: email,
+      spaceId: !consultancy ? spaceId : null,
       value: value,
       dayDue: dayDue,
+      consultancy: consultancy,
     };
 
     const clientAlreadyExists =
@@ -53,6 +63,48 @@ class EditClientProfessionalService {
       throw new Error("Cliente não encontrado");
     }
 
+    if (
+      clientAlreadyExists.email != email &&
+      clientAlreadyExists.status == "registration_pending"
+    ) {
+      if (!validateEmail(email)) {
+        throw new Error("Email inválido");
+      }
+
+      const userAlreadyExists = await prismaClient.user.findFirst({
+        where: {
+          email: email,
+          OR: [
+            {
+              role: "PROFESSIONAL",
+            },
+            {
+              role: "SPACE",
+            },
+          ],
+        },
+      });
+
+      if (userAlreadyExists) {
+        throw new Error("Email já está sendo usado por outro tipo de usuário");
+      }
+
+      const clientAlreadyExists =
+        await prismaClient.clientsProfessional.findFirst({
+          where: {
+            email: email,
+            professionalId: professionalId,
+            status: {
+              not: "cancelled",
+            },
+          },
+        });
+
+      if (clientAlreadyExists) {
+        throw new Error("Você já cadastrou um aluno usando esse email");
+      }
+    }
+
     if (spaceId) {
       const space = await prismaClient.space.findUnique({
         where: {
@@ -63,6 +115,12 @@ class EditClientProfessionalService {
       if (!space) {
         throw new Error("Academia não encontrada");
       }
+    }
+
+    const day = getDate(new Date());
+
+    if (dayDue != clientAlreadyExists.dayDue && dayDue >= day) {
+      data["status"] = "active";
     }
 
     const clientProfessional = await prismaClient.clientsProfessional.update({
@@ -171,7 +229,6 @@ class EditClientProfessionalService {
           })
       )
     );
-
     await Promise.all(
       schedule.map(async (item) => {
         const scheduleDay = await prismaClient.schedule.findUnique({
@@ -210,6 +267,15 @@ class EditClientProfessionalService {
         }
       })
     );
+
+    if (consultancy) {
+      await prismaClient.schedule.deleteMany({
+        where: {
+          professionalId: clientProfessional.professionalId,
+          clientProfessionalId: clientProfessional.id,
+        },
+      });
+    }
 
     return clientProfessional;
   }

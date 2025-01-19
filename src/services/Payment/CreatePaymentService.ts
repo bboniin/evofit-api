@@ -1,5 +1,6 @@
 import * as OneSignal from "onesignal-node";
 import prismaClient from "../../prisma";
+import { getValue } from "../../config/functions";
 
 interface OrderRequest {
   data: object;
@@ -11,8 +12,7 @@ const client = new OneSignal.Client(
 );
 
 async function sendNotification(title, text, userId, payment, type) {
-  console.log("Notificação pre enviada com sucesso:");
-  const response = await client.createNotification({
+  await client.createNotification({
     headings: {
       en: title,
       pt: title,
@@ -29,7 +29,7 @@ async function sendNotification(title, text, userId, payment, type) {
     },
     include_external_user_ids: [userId],
   });
-  console.log("Notificação enviada com sucesso:", response);
+
   await prismaClient.notification.create({
     data: {
       title: title,
@@ -71,7 +71,9 @@ class CreatePaymentService {
       );
       await sendNotification(
         "Cobrança emitida",
-        `${payment.client.name} no valor de ${payment.value}`,
+        `${payment.client.name.toUpperCase()} no valor de ${getValue(
+          payment.value
+        )}`,
         payment.professionalId,
         payment,
         "professional"
@@ -88,7 +90,7 @@ class CreatePaymentService {
 
         await sendNotification(
           "Novo pedido",
-          `${payment.client.name} fez um pedido`,
+          `${payment.client.name.toUpperCase()} fez um pedido`,
           payment.professionalId,
           payment,
           "professional"
@@ -105,7 +107,7 @@ class CreatePaymentService {
 
           await sendNotification(
             "Novo pedido",
-            `${payment.client.name} fez um pedido`,
+            `${payment.client.name.toUpperCase()} fez um pedido`,
             payment.spaceId,
             payment,
             "space"
@@ -121,14 +123,14 @@ class CreatePaymentService {
 
           await sendNotification(
             "Novo pedido",
-            `${payment.client.name} fez um pedido`,
+            `${payment.client.name.toUpperCase()} fez um pedido`,
             payment.spaceId,
             payment,
             "space"
           );
           await sendNotification(
             "Novo pedido",
-            `${payment.client.name} fez um pedido`,
+            `${payment.client.name.toUpperCase()} fez um pedido`,
             payment.spaceId,
             payment,
             "space"
