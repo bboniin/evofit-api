@@ -297,6 +297,7 @@ class CreateOrderService {
         }
       })
       .catch((e) => {
+        console.log(e);
         throw new Error("Ocorreu um erro ao criar cobrança");
       });
 
