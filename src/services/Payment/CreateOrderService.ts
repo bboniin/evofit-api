@@ -48,7 +48,7 @@ class CreateOrderService {
 
     const space = await prismaClient.space.findUnique({
       where: {
-        userId: spaceId,
+        id: spaceId,
       },
     });
 

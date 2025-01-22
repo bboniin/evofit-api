@@ -8,7 +8,7 @@ class SpaceDiariesService {
   async execute({ spaceId }: DiaryRequest) {
     const space = await prismaClient.space.findUnique({
       where: {
-        userId: spaceId,
+        id: spaceId,
       },
     });
 
