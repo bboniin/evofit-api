@@ -157,13 +157,45 @@ class CreateOrderService {
         ? "lesson"
         : "diary";
 
-    const valueDiarieAll =
+    const valueAll =
       (type == "multiple"
         ? space.valueDiarie + professional.valueLesson
         : type == "diary"
         ? space.valueDiarie * amount
         : professional.valueLesson) * 100;
-    const valuePaid = valueDiarieAll * 1.02;
+    const valuePaid = valueAll * 1.02;
+
+    const valueProfessional = professional.valueLesson * 100;
+    const valueSpace =
+      (type == "multiple" ? space.valueDiarie : space.valueDiarie * amount) *
+      100;
+
+    const splits = [];
+
+    if (type == "multiple" || type == "diary") {
+      splits.push({
+        amount: valueSpace,
+        recipient_id: space.recipientId,
+        type: "flat",
+        options: {
+          charge_processing_fee: false,
+          charge_remainder_fee: false,
+          liable: false,
+        },
+      });
+    }
+    if (type == "multiple" || type == "lesson") {
+      splits.push({
+        amount: valueProfessional,
+        recipient_id: professional.recipientId,
+        type: "flat",
+        options: {
+          charge_processing_fee: false,
+          charge_remainder_fee: false,
+          liable: false,
+        },
+      });
+    }
 
     await api
       .post("/orders", {
@@ -207,18 +239,9 @@ class CreateOrderService {
               ],
             },
             split: [
+              ...splits,
               {
-                amount: valueDiarieAll,
-                recipient_id: space.recipientId,
-                type: "flat",
-                options: {
-                  charge_processing_fee: false,
-                  charge_remainder_fee: false,
-                  liable: false,
-                },
-              },
-              {
-                amount: valuePaid - valueDiarieAll,
+                amount: valuePaid - valueAll,
                 recipient_id: "re_cm2uxwdzw3j720m9tiinncic7",
                 type: "flat",
                 options: {
@@ -244,8 +267,8 @@ class CreateOrderService {
             professionalId: type != "diary" ? professionalId : null,
             type: type,
             clientId: client.id,
-            rate: (valuePaid - valueDiarieAll) / 100,
-            value: valueDiarieAll / 100,
+            rate: (valuePaid - valueAll) / 100,
+            value: valueAll / 100,
             orderId: response.data.id,
             expireAt: addMinutes(new Date(), 30),
             items: {
@@ -297,7 +320,7 @@ class CreateOrderService {
         }
       })
       .catch((e) => {
-        console.log(e);
+        console.log(e.response.data);
         throw new Error("Ocorreu um erro ao criar cobrança");
       });
 
