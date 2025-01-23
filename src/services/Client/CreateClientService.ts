@@ -160,7 +160,7 @@ class CreateClientService {
 
         if (item.dayDue >= day + 1) {
           const valueClientAll = clientUp.value * 100;
-          const valuePaid = valueClientAll * 1.02;
+          const valuePaid = valueClientAll * 1.012;
 
           await api
             .post("/orders", {

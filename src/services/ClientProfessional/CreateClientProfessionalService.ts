@@ -143,7 +143,7 @@ class CreateClientProfessionalService {
     });
 
     const valueClientAll = value * 100;
-    const valuePaid = valueClientAll * 1.02;
+    const valuePaid = valueClientAll * 1.012;
 
     if (!consultancy) {
       schedule.map(async (item) => {

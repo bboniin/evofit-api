@@ -45,7 +45,7 @@ class ChargePaymentService {
     await Promise.all(
       clients.map(async (client) => {
         const valueClientAll = client.value * 100;
-        const valuePaid = valueClientAll * 1.02;
+        const valuePaid = valueClientAll * 1.012;
 
         await api
           .post("/orders", {
