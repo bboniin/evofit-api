@@ -48,7 +48,7 @@ cron.schedule("* * * * *", () => {
   expirePaymentService.execute();
 });
 
-cron.schedule("0 0 * * *", () => {
+cron.schedule("* * * * *", () => {
   const expireNotificationsService = new ExpireNotificationsService();
   expireNotificationsService.execute();
 });
