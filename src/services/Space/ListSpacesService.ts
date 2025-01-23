@@ -1,38 +1,52 @@
-import prismaClient from '../../prisma'
+import prismaClient from "../../prisma";
 
 interface SpaceRequest {
-    minLatitude: number;
-    minLongitude: number;
-    maxLatitude: number;
-    maxLongitude: number;
+  minLatitude: number;
+  minLongitude: number;
+  maxLatitude: number;
+  maxLongitude: number;
 }
 
 class ListSpacesService {
-    async execute({ minLatitude, minLongitude, maxLatitude, maxLongitude }: SpaceRequest) {
-
-        const spaces = await prismaClient.space.findMany({
-            where: {
-                latitude: {
-                  gte: minLatitude,
-                  lte: maxLatitude
-                },
-                longitude: {
-                  gte: minLongitude,
-                  lte: maxLongitude
-                }
+  async execute({
+    minLatitude,
+    minLongitude,
+    maxLatitude,
+    maxLongitude,
+  }: SpaceRequest) {
+    const spaces = await prismaClient.space.findMany({
+      where: {
+        latitude: {
+          gte: minLatitude,
+          lte: maxLatitude,
+        },
+        longitude: {
+          gte: minLongitude,
+          lte: maxLongitude,
+        },
+      },
+      include: {
+        photos: true,
+        professionals: {
+          where: {
+            professional: {
+              OR: [
+                { recipientStatus: "registration" },
+                { recipientStatus: "affiliation" },
+                { recipientStatus: "active" },
+              ],
+              finishProfile: true,
             },
-            include: {
-                photos: true,
-                professionals: {
-                    include: {
-                        professional: true
-                    }
-                }
-            }
-        })
+          },
+          include: {
+            professional: true,
+          },
+        },
+      },
+    });
 
-        return (spaces)
-    }
+    return spaces;
+  }
 }
 
-export { ListSpacesService }
+export { ListSpacesService };

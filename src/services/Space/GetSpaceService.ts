@@ -1,39 +1,38 @@
-import prismaClient from '../../prisma'
+import prismaClient from "../../prisma";
 
 interface SpaceRequest {
-    spaceId: string;
+  spaceId: string;
 }
 
 class GetSpaceService {
-    async execute({ spaceId }: SpaceRequest) {
-
-        const space = await prismaClient.space.findUnique({
-            where: {
-                id: spaceId
+  async execute({ spaceId }: SpaceRequest) {
+    const space = await prismaClient.space.findUnique({
+      where: {
+        id: spaceId,
+      },
+      include: {
+        photos: true,
+        professionals: {
+          where: {
+            professional: {
+              OR: [
+                { recipientStatus: "registration" },
+                { recipientStatus: "affiliation" },
+                { recipientStatus: "active" },
+              ],
+              finishProfile: true,
             },
-            include: {
-                photos: true,
-                professionals: {
-                    where: {
-                        professional: {
-                            OR: [
-                                { recipientStatus: "registration" },
-                                { recipientStatus: "affiliation" },
-                                { recipientStatus: "active" },
-                            ],
-                            finishProfile: true
-                        }
-                    },
-                    include: {
-                        professional: true
-                    }
-                },
-                spaceHours: true
-            }
-        })
+          },
+          include: {
+            professional: true,
+          },
+        },
+        spaceHours: true,
+      },
+    });
 
-        return (space)
-    }
+    return space;
+  }
 }
 
-export { GetSpaceService }
+export { GetSpaceService };

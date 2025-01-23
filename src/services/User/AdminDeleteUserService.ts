@@ -2,24 +2,15 @@ import prismaClient from "../../prisma";
 import { compare } from "bcryptjs";
 
 interface DeleteRequest {
-  password: string;
   userId: string;
+  idDelete: string;
 }
 
-class DeleteUserService {
-  async execute({ password, userId }: DeleteRequest) {
-    if (!password) {
-      throw new Error("Email é obrigatório");
-    }
-
+class AdminDeleteUserService {
+  async execute({ userId, idDelete }: DeleteRequest) {
     const user = await prismaClient.user.findFirst({
       where: {
         id: userId,
-      },
-      include: {
-        space: true,
-        client: true,
-        professional: true,
       },
     });
 
@@ -27,23 +18,29 @@ class DeleteUserService {
       throw new Error("Usuário não foi encontrado");
     }
 
-    const passwordMatch = await compare(password, user.password);
-
-    if (!passwordMatch) {
-      throw new Error("Senha está incorreta");
+    if (user.email != "huwelder@hotmail.com") {
+      throw new Error("Usuário não é administrador");
     }
 
-    await prismaClient.user.delete({
+    const userDelete = await prismaClient.user.findFirst({
       where: {
-        id: userId,
+        id: idDelete,
       },
     });
 
-    switch (user.role) {
+    if (userDelete) {
+      await prismaClient.user.delete({
+        where: {
+          id: idDelete,
+        },
+      });
+    }
+
+    switch (userDelete.role) {
       case "CLIENT": {
         await prismaClient.client.update({
           where: {
-            id: user.id,
+            id: userDelete.id,
           },
           data: {
             isDeleted: true,
@@ -51,7 +48,7 @@ class DeleteUserService {
         });
         await prismaClient.clientsProfessional.updateMany({
           where: {
-            clientId: user.id,
+            clientId: userDelete.id,
           },
           data: {
             status: "cancelled",
@@ -61,7 +58,7 @@ class DeleteUserService {
       case "PROFESSIONAL": {
         await prismaClient.professional.update({
           where: {
-            id: user.id,
+            id: userDelete.id,
           },
           data: {
             isDeleted: true,
@@ -69,17 +66,17 @@ class DeleteUserService {
         });
         await prismaClient.clientsProfessional.updateMany({
           where: {
-            professionalId: user.id,
+            professionalId: userDelete.id,
           },
           data: {
             status: "cancelled",
           },
         });
       }
-      case "SPACE": {
+      default: {
         await prismaClient.space.update({
           where: {
-            id: user.id,
+            id: userDelete.id,
           },
           data: {
             isDeleted: true,
@@ -90,4 +87,4 @@ class DeleteUserService {
   }
 }
 
-export { DeleteUserService };
+export { AdminDeleteUserService };

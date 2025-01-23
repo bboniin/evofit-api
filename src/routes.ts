@@ -35,13 +35,13 @@ import { EditClientProfessionalController } from "./controllers/ClientProfession
 import { ListClientsProfessionalController } from "./controllers/ClientProfessional/ListClientsProfessionalController";
 import { GetClientProfessionalController } from "./controllers/ClientProfessional/GetClientProfessionalController";
 import { DeleteClientProfessionalController } from "./controllers/ClientProfessional/DeleteClientProfessionalController";
-import { DeleteScheduleProfessionalController } from "./controllers/Schedule/DeleteScheduleProfessionalService";
-import { DayScheduleProfessionalController } from "./controllers/Schedule/DayScheduleProfessionalService";
+import { DeleteScheduleProfessionalController } from "./controllers/Schedule/DeleteScheduleProfessionalController";
+import { DayScheduleProfessionalController } from "./controllers/Schedule/DayScheduleProfessionalController";
 import { ListScheduleProfessionalController } from "./controllers/Schedule/ListScheduleProfessionalController";
 import { EditScheduleProfessionalController } from "./controllers/Schedule/EditScheduleProfessionalController";
 import { MyBookingController } from "./controllers/Booking/MyBookingController";
 import { FrequencyBookingController } from "./controllers/Booking/FrequencyBookingController";
-import { DayWeekScheduleProfessionalController } from "./controllers/Schedule/DayWeekScheduleProfessionalService";
+import { DayWeekScheduleProfessionalController } from "./controllers/Schedule/DayWeekScheduleProfessionalController";
 import { ClassesScheduleProfessionalController } from "./controllers/Schedule/ClassesScheduleProfessionalController";
 import { BlocksScheduleProfessionalController } from "./controllers/Schedule/BlocksScheduleProfessionalController";
 import { CreateBlockScheduleProfessionalController } from "./controllers/Schedule/CreateBlockScheduleProfessionalController";
@@ -70,13 +70,14 @@ import { UsedDiaryController } from "./controllers/Diary/UsedDiaryController";
 import { ListPaymentsController } from "./controllers/Payment/ListPaymentsController";
 import { GetWithdrawalsController } from "./controllers/Recipient/GetWithdrawalsController";
 import { CreateWithdrawalController } from "./controllers/Recipient/CreateWithdrawalController";
-import { HistoricLessonController } from "./controllers/Schedule/HistoricLessonService";
+import { HistoricLessonController } from "./controllers/Schedule/HistoricLessonController";
 import { ListNotificationsController } from "./controllers/Notification/ListNotificationsController";
 import { OpenNotificationsController } from "./controllers/Notification/OpenNotificationsController";
 import { SpaceHistoricDiariesController } from "./controllers/Diary/SpaceHistoricDiariesController";
 import { ClientHistoricDiariesController } from "./controllers/Diary/ClientHistoricDiariesController";
 import { BuyConsultancyController } from "./controllers/ClientProfessional/BuyConsultancyController";
 import { GetBookingController } from "./controllers/Booking/GetBookingController";
+import { AdminDeleteUserController } from "./controllers/User/AdminDeleteUserController";
 
 const upload = multer(uploadConfig);
 
@@ -119,6 +120,7 @@ router.use(isAuthenticated);
 router.get("/users", new GetUserController().handle);
 router.put("/users/password", new EditPasswordUserController().handle);
 router.post("/user-delete", new DeleteUserController().handle);
+router.post("/admin/user-delete", new AdminDeleteUserController().handle);
 
 router.post(
   "/space/init",

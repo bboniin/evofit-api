@@ -7,10 +7,20 @@ interface RecipientRequest {
   account: string;
   branch: string;
   type: string;
+  trading_name: string;
+  company_name: string;
 }
 
 class CreateRecipientService {
-  async execute({ userId, bank, type, branch, account }: RecipientRequest) {
+  async execute({
+    userId,
+    bank,
+    type,
+    company_name,
+    trading_name,
+    branch,
+    account,
+  }: RecipientRequest) {
     const spaceOrProfessional = await prismaClient.user.findUnique({
       where: {
         id: userId,
@@ -44,8 +54,8 @@ class CreateRecipientService {
         description: "",
         document: user.cpfOrCnpj,
         type: userType,
-        company_name: user.name,
-        trading_name: user.name,
+        company_name: company_name,
+        trading_name: trading_name,
         annual_revenue: 1000000,
         default_bank_account: {
           holder_name: user.name,

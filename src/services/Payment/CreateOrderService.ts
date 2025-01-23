@@ -1,9 +1,11 @@
 import {
+  addHours,
   addMinutes,
   endOfDay,
   isAfter,
   isBefore,
   isEqual,
+  isSameDay,
   parse,
   startOfDay,
 } from "date-fns";
@@ -72,9 +74,20 @@ class CreateOrderService {
       if (!startTime || !date || !endTime) {
         throw new Error("Data e horários de inicio e fim são obrigatórios");
       }
+
+      if (isSameDay(date, new Date())) {
+        const parsedTime = format(addHours(new Date(), 2), "HH:mm");
+        if (format(new Date(), "HH:mm") > "22:00" || parsedTime > startTime) {
+          throw new Error(
+            "Só é permitidos reservar aulas com 2 horas de antecedência"
+          );
+        }
+      }
+
       const startDateTime = new Date(
         `${format(date, "yyyy-MM-dd")}T${startTime}`
       );
+
       const endDateTime = new Date(`${format(date, "yyyy-MM-dd")}T${endTime}`);
 
       const dayOfWeek = new Date(date).getDay();

@@ -87,7 +87,8 @@ class DayScheduleProfessionalService {
     let currentTime = new Date(startTime);
     while (isBefore(currentTime, endTime) || isEqual(currentTime, endTime)) {
       const nextTime = addMinutes(currentTime, 15); // Intervalo de 15 minutos para cada slot
-      const slotEndTime = addMinutes(currentTime, 15); // Duração de 60 minutos para o slot
+      const slotEndTime = addMinutes(currentTime, 15);
+      const slotEndTimeLesson = addMinutes(currentTime, 60); // Duração de 60 minutos para o slot
 
       if (user) {
         const isBlocked = schedules.some(
@@ -175,7 +176,7 @@ class DayScheduleProfessionalService {
         ) {
           slots.push({
             startTime: format(currentTime, "HH:mm"),
-            endTime: format(slotEndTime, "HH:mm"),
+            endTime: format(slotEndTimeLesson, "HH:mm"),
           });
         }
       }

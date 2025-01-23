@@ -18,7 +18,6 @@ model User {
   id                     String                       @id @default(uuid())
   email                  String                       @unique
   password               String
-  isDelete               Boolean                      @default(false)
   role                   Role
   client                 Client?
   professional           Professional?
@@ -32,7 +31,7 @@ model User {
 
 model Client {
   id                     String                       @id @default(uuid())
-  userId                 String                       @unique
+  userId                 String?                      @unique
   name                   String
   cpf                    String
   phoneNumber            String
@@ -40,7 +39,8 @@ model Client {
   objective              String                   
   experienceLevel        String
   birthday               DateTime
-  user                   User?                        @relation(fields: [userId], references: [id])
+  user                   User?                        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  isDeleted              Boolean                      @default(false)
 
   bookings               Booking[]
   clientsProfessional    ClientsProfessional[]
@@ -57,7 +57,7 @@ model Client {
 
 model Professional {
   id                      String                      @id @default(uuid())
-  userId                  String                      @unique
+  userId                  String?                     @unique
   name                    String
   phoneNumber             String?
   description             String?
@@ -74,6 +74,7 @@ model Professional {
   recipientId             String?
   recipientStatus         String?
   finishProfile           Boolean                     @default(false)
+  isDeleted               Boolean                     @default(false)
 
   clientsProfessional     ClientsProfessional[]
   photos                  PhotosProfessional[]
@@ -85,7 +86,7 @@ model Professional {
   payments                Payment[]   
   ratings                 Rating[]    
 
-  user                    User                        @relation(fields: [userId], references: [id])
+  user                    User?                        @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -112,11 +113,11 @@ model Space {
   latitude                Float
   longitude               Float
   valueDiarie             Float?
-  descriptionDiarie       String?
   enableDiarie            Boolean                     @default(false)
   recipientId             String?
   recipientStatus         String?
   finishProfile           Boolean                     @default(false)
+  isDeleted               Boolean                      @default(false)
 
   photos                  PhotosSpace[]       
   professionals           ProfessionalSpace[]     
@@ -127,7 +128,7 @@ model Space {
   clientsProfessional     ClientsProfessional[]
   bookings                Booking[]
 
-  user                    User?                       @relation(fields: [userId], references: [id])
+  user                    User?                       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -140,7 +141,7 @@ model PhotosProfessional {
   userId                  String                         
   photo                   String                 
 
-  professional            Professional                @relation(fields: [userId], references: [userId])
+  professional            Professional                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -153,7 +154,7 @@ model PhotosSpace {
   userId                  String                         
   photo                   String                   
 
-  space                   Space                       @relation(fields: [userId], references: [userId])
+  space                   Space                       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -168,7 +169,7 @@ model WorkSchedule {
   startTime               String                     
   endTime                 String                     
 
-  professional            Professional                @relation(fields: [professionalId], references: [userId])
+  professional            Professional                @relation(fields: [professionalId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt 
@@ -185,12 +186,10 @@ model SpaceHours {
   startTime               String                     
   endTime                 String                     
 
-  space                   Space                       @relation(fields: [spaceId], references: [id])
+  space                   Space                       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt 
-
-  @@unique([spaceId, dayOfWeek])
 
   @@map("spaceHours")
 }
@@ -207,8 +206,8 @@ model Schedule {
   date                    DateTime
   description             String?       
 
-  clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id])
-  professional            Professional                @relation(fields: [professionalId], references: [userId])
+  clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id], onDelete: Cascade)
+  professional            Professional                @relation(fields: [professionalId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt 
@@ -233,9 +232,9 @@ model Booking {
 
   ratings                 Rating[]    
 
-  client                  Client                      @relation(fields: [clientId], references: [userId])
-  professional            Professional                @relation(fields: [professionalId], references: [userId])
-  space                   Space                       @relation(fields: [spaceId], references: [id])
+  client                  Client                      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  professional            Professional                @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  space                   Space                       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   payment                 Payment?                    @relation(fields: [paymentId], references: [id])
 
   createdAt               DateTime                    @default(now())
@@ -248,8 +247,8 @@ model ProfessionalSpace {
   id                      String                      @id @default(uuid())
   professionalId          String                      
   spaceId                 String                       
-  professional            Professional                @relation(fields: [professionalId], references: [userId])
-  space                   Space                       @relation(fields: [spaceId], references: [id])
+  professional            Professional                @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  space                   Space                       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -265,9 +264,9 @@ model Diary {
   used                    Boolean     
   dateUsed                DateTime                    @default(now())    
 
-  client                  Client                      @relation(fields: [clientId], references: [userId])
-  space                   Space                       @relation(fields: [spaceId], references: [id])
-  item                    Item                        @relation(fields: [itemId], references: [id])
+  client                  Client                      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  space                   Space                       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item                    Item                        @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
 
@@ -290,9 +289,9 @@ model ClientsProfessional {
   clientId                String?   
   visible                 Boolean                     @default(true)
 
-  professional            Professional                @relation(fields: [professionalId], references: [userId])
-  client                  Client?                     @relation(fields: [clientId], references: [userId])
-  space                   Space?                      @relation(fields: [spaceId], references: [id])
+  professional            Professional                @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  client                  Client?                     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  space                   Space?                      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
 
   payments                Payment[]
   schedules               Schedule[]                  
@@ -322,10 +321,10 @@ model Payment {
   recurring               Boolean                     @default(false)
   rate                    Float                       @default(0)
 
-  professional            Professional?               @relation(fields: [professionalId], references: [userId])
-  clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id])
-  space                   Space?                      @relation(fields: [spaceId], references: [userId])
-  client                  Client                      @relation(fields: [clientId], references: [userId])  
+  professional            Professional?               @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  clientProfessional      ClientsProfessional?        @relation(fields: [clientProfessionalId], references: [id], onDelete: Cascade)
+  space                   Space?                      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  client                  Client                      @relation(fields: [clientId], references: [id], onDelete: Cascade)  
 
   items                   Item[] 
   bookings                Booking[] 
@@ -341,8 +340,8 @@ model Chat {
   id                      String                      @id @default(uuid())
   clientId                String
   professionalId          String
-  client                  Client                      @relation(fields: [clientId], references: [userId])
-  professional            Professional                @relation(fields: [professionalId], references: [userId])
+  client                  Client                      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  professional            Professional                @relation(fields: [professionalId], references: [id], onDelete: Cascade)
 
   messages                Message[]                          
 
@@ -356,15 +355,15 @@ model Rating {
   id                      String                      @id @default(uuid())
   comment                 String
   rate                    Int   
-  clientId                String                        
+  clientId                String?                  
   bookingId               String?                     @unique 
   professionalId          String?   
   spaceId                 String?  
 
-  professional            Professional?               @relation(fields: [professionalId], references: [userId])
-  space                   Space?                      @relation(fields: [spaceId], references: [userId])
-  client                  Client                      @relation(fields: [clientId], references: [userId])
-  booking                 Booking?                    @relation(fields: [bookingId], references: [id])                             
+  professional            Professional?               @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  space                   Space?                      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  client                  Client?                     @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  booking                 Booking?                    @relation(fields: [bookingId], references: [id], onDelete: SetNull)                             
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -380,7 +379,7 @@ model Item {
   type                    TypeItem
 
   diaries                 Diary[] 
-  payment                 Payment?                    @relation(fields: [paymentId], references: [id])         
+  payment                 Payment?                    @relation(fields: [paymentId], references: [id], onDelete: Cascade)         
 
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt @default(now())
@@ -393,7 +392,7 @@ model Message {
   content                 String
   userId                  String
   chatId                  String
-  chat                    Chat                        @relation(fields: [chatId], references: [id])
+  chat                    Chat                        @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   createdAt               DateTime                    @default(now())
 
