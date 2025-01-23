@@ -164,6 +164,10 @@ class CreateSpaceService {
       complement: complement,
     };
 
+    if (description && photo) {
+      data["finishProfile"] = true;
+    }
+
     if (photo) {
       const s3Storage = new S3Storage();
 

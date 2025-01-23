@@ -11,6 +11,7 @@ import { ExpirePaymentService } from "./services/Payment/ExpirePaymentService";
 import { ChargePaymentService } from "./services/ClientProfessional/ChargePaymentService";
 import { CreateBookingDayService } from "./services/Booking/CreateBookingDayService";
 import { NotificationBookingService } from "./services/Booking/NotificationBookingService";
+import { ExpireNotificationsService } from "./services/Notification/ExpireNotificationsService";
 
 interface Payload {
   sub: string;
@@ -47,7 +48,12 @@ cron.schedule("* * * * *", () => {
   expirePaymentService.execute();
 });
 
-cron.schedule("* * * * *", () => {
+cron.schedule("0 0 * * *", () => {
+  const expireNotificationsService = new ExpireNotificationsService();
+  expireNotificationsService.execute();
+});
+
+cron.schedule("0 0 * * *", () => {
   const chargePaymentService = new ChargePaymentService();
   chargePaymentService.execute();
 });
