@@ -11,6 +11,7 @@ interface ClientRequest {
   professionalId: string;
   value: number;
   dayDue: number;
+  billingPeriod: string;
   consultancy: boolean;
   schedule: Array<{
     dayOfWeek: number;
@@ -28,6 +29,7 @@ class EditClientProfessionalService {
     email,
     professionalId,
     dayDue,
+    billingPeriod,
     schedule,
     consultancy,
   }: ClientRequest) {
@@ -49,6 +51,7 @@ class EditClientProfessionalService {
       spaceId: !consultancy ? spaceId : null,
       value: value,
       dayDue: dayDue,
+      billingPeriod: billingPeriod || "monthly",
       consultancy: consultancy,
     };
 
@@ -109,11 +112,12 @@ class EditClientProfessionalService {
       const space = await prismaClient.space.findUnique({
         where: {
           id: spaceId,
+          isDeleted: false,
         },
       });
 
       if (!space) {
-        throw new Error("Academia não encontrada");
+        throw new Error("Espaço não encontrado");
       }
     }
 

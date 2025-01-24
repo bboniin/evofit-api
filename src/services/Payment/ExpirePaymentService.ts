@@ -45,8 +45,8 @@ class ExpirePaymentService {
             pt: "Mensalidade cancelada",
           },
           contents: {
-            en: "Pagamento cancelado, entre em contato com seu personal para ficar em dia",
-            pt: "Pagamento cancelado, entre em contato com seu personal para ficar em dia",
+            en: "Pagamento cancelado, entre em contato com o profissional para ficar em dia",
+            pt: "Pagamento cancelado, entre em contato com o profissional para ficar em dia",
           },
           data: {
             screen: "PaymentClient",
@@ -60,7 +60,7 @@ class ExpirePaymentService {
           data: {
             title: "Mensalidade cancelada",
             message:
-              "Pagamento cancelado, entre em contato com seu personal para ficar em dia",
+              "Pagamento cancelado, entre em contato com o profissional para ficar em dia",
             type: "PaymentClient",
             dataId: payment.id,
             userId: payment.clientId,

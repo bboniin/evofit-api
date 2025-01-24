@@ -10,12 +10,14 @@ class TransferNotificationService {
     const space = await prismaClient.space.findFirst({
       where: {
         recipientId: data["data"]["id"],
+        isDeleted: false,
       },
     });
 
     const professional = await prismaClient.professional.findFirst({
       where: {
         recipientId: data["data"]["id"],
+        isDeleted: false,
       },
     });
 

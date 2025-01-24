@@ -43,6 +43,7 @@ class EditSpaceInitService {
     const space = await prismaClient.space.findUnique({
       where: {
         id: spaceId,
+        isDeleted: false,
       },
       include: {
         spaceHours: true,

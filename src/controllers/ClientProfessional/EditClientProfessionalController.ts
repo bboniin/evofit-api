@@ -3,8 +3,16 @@ import { EditClientProfessionalService } from "../../services/ClientProfessional
 
 class EditClientProfessionalController {
   async handle(req: Request, res: Response) {
-    const { name, spaceId, value, dayDue, schedule, email, consultancy } =
-      req.body;
+    const {
+      name,
+      spaceId,
+      value,
+      dayDue,
+      schedule,
+      email,
+      consultancy,
+      billingPeriod,
+    } = req.body;
 
     const { clientId } = req.params;
 
@@ -22,6 +30,7 @@ class EditClientProfessionalController {
       professionalId: userId,
       email,
       consultancy,
+      billingPeriod,
     });
 
     return res.json(clientProfessional);

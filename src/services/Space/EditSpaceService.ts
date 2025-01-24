@@ -57,6 +57,9 @@ class EditSpaceService {
       },
       include: {
         space: {
+          where: {
+            isDeleted: false,
+          },
           include: {
             spaceHours: true,
           },

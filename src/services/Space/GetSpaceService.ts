@@ -9,6 +9,7 @@ class GetSpaceService {
     const space = await prismaClient.space.findUnique({
       where: {
         id: spaceId,
+        isDeleted: false,
       },
       include: {
         photos: true,
@@ -21,6 +22,7 @@ class GetSpaceService {
                 { recipientStatus: "active" },
               ],
               finishProfile: true,
+              isDeleted: false,
             },
           },
           include: {
@@ -30,6 +32,10 @@ class GetSpaceService {
         spaceHours: true,
       },
     });
+
+    if (!space) {
+      throw new Error("Espaço não encontrado ou excluido");
+    }
 
     return space;
   }

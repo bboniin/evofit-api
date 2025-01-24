@@ -44,6 +44,7 @@ class BuyBookingService {
     const professional = await prismaClient.professional.findUnique({
       where: {
         userId: professionalId,
+        isDeleted: false,
       },
     });
 
@@ -52,7 +53,7 @@ class BuyBookingService {
     }
 
     if (!professional) {
-      throw new Error("Personal não encontrado");
+      throw new Error("Profissional não encontrado");
     }
 
     const dayOfWeek = new Date(date).getDay();

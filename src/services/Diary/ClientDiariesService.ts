@@ -9,6 +9,7 @@ class ClientDiariesService {
     const client = await prismaClient.client.findUnique({
       where: {
         userId: clientId,
+        isDeleted: false,
       },
     });
 

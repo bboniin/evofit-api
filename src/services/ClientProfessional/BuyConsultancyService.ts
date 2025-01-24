@@ -51,6 +51,7 @@ class BuyConsultancyService {
     const professional = await prismaClient.professional.findFirst({
       where: {
         id: professionalId,
+        isDeleted: false,
       },
     });
 
@@ -161,6 +162,7 @@ class BuyConsultancyService {
             value: professional.valueConsultancy,
             professionalId: professionalId,
             clientId: user.id,
+            billingPeriod: "monthly",
             consultancy: true,
             dayDue: day > 28 ? day - 28 : day,
             status: "awaiting_payment",

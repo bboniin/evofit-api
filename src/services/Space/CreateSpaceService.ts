@@ -132,6 +132,7 @@ class CreateSpaceService {
     const spaceGet = await prismaClient.space.findFirst({
       where: {
         userId: null,
+        isDeleted: false,
         OR: [
           {
             latitude: latitude,

@@ -16,6 +16,7 @@ class ListSpacesService {
   }: SpaceRequest) {
     const spaces = await prismaClient.space.findMany({
       where: {
+        isDeleted: false,
         latitude: {
           gte: minLatitude,
           lte: maxLatitude,
@@ -36,6 +37,7 @@ class ListSpacesService {
                 { recipientStatus: "active" },
               ],
               finishProfile: true,
+              isDeleted: false,
             },
           },
           include: {

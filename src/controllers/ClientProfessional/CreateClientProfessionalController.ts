@@ -12,6 +12,7 @@ class CreateClientProfessionalController {
       dayDue,
       consultancy,
       schedule,
+      billingPeriod,
     } = req.body;
 
     const userId = req.userId;
@@ -29,6 +30,7 @@ class CreateClientProfessionalController {
       value,
       dayDue,
       schedule,
+      billingPeriod,
     });
 
     return res.json(clientProfessional);

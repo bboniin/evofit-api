@@ -286,6 +286,7 @@ model ClientsProfessional {
   spaceId                 String?  
   value                   Float         
   professionalId          String
+  billingPeriod           String                      @default("monthly")
   clientId                String?   
   visible                 Boolean                     @default(true)
 

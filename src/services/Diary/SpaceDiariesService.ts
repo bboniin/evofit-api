@@ -9,6 +9,7 @@ class SpaceDiariesService {
     const space = await prismaClient.space.findUnique({
       where: {
         id: spaceId,
+        isDeleted: false,
       },
     });
 

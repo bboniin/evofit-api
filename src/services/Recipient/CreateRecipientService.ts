@@ -26,8 +26,16 @@ class CreateRecipientService {
         id: userId,
       },
       include: {
-        space: true,
-        professional: true,
+        space: {
+          where: {
+            isDeleted: false,
+          },
+        },
+        professional: {
+          where: {
+            isDeleted: false,
+          },
+        },
       },
     });
 

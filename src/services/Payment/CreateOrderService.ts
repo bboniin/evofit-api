@@ -51,6 +51,7 @@ class CreateOrderService {
     const space = await prismaClient.space.findUnique({
       where: {
         id: spaceId,
+        isDeleted: false,
       },
     });
 
@@ -64,10 +65,11 @@ class CreateOrderService {
       professional = await prismaClient.professional.findUnique({
         where: {
           userId: professionalId,
+          isDeleted: false,
         },
       });
 
-      if (!professional && professionalId) {
+      if (!professional) {
         throw new Error("Profissional não encontrado");
       }
 
