@@ -257,7 +257,7 @@ class CreateOrderService {
               ...splits,
               {
                 amount: valuePaid - valueAll,
-                recipient_id: "re_cm2uxwdzw3j720m9tiinncic7",
+                recipient_id: "re_cm6b5djbg7lho0l9tx4wau5zy",
                 type: "flat",
                 options: {
                   charge_processing_fee: true,
