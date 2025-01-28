@@ -116,7 +116,7 @@ class CreateRecipientService {
         }
       })
       .catch((e) => {
-        console.log(e.response.data.errors);
+        console.log(e.response);
         throw new Error("Ocorreu um erro ao adicionar conta bancária");
       });
 
