@@ -3,8 +3,24 @@ import { CreateRecipientService } from "../../services/Recipient/CreateRecipient
 
 class CreateRecipientController {
   async handle(req: Request, res: Response) {
-    const { bank, branch, account, type, company_name, trading_name } =
-      req.body;
+    const {
+      bank,
+      branch,
+      account,
+      type,
+      company_name,
+      trading_name,
+      name,
+      cpf,
+      birthday,
+      address,
+      neighborhood,
+      number,
+      zipCode,
+      complement,
+      state,
+      city,
+    } = req.body;
 
     const createRecipientService = new CreateRecipientService();
 
@@ -17,6 +33,16 @@ class CreateRecipientController {
       type,
       company_name,
       trading_name,
+      name,
+      cpf,
+      birthday,
+      address,
+      neighborhood,
+      number,
+      zipCode,
+      complement,
+      state,
+      city,
       userId,
     });
 
