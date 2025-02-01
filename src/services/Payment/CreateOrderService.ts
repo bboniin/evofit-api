@@ -76,9 +76,14 @@ class CreateOrderService {
       if (!startTime || !date || !endTime) {
         throw new Error("Data e horários de inicio e fim são obrigatórios");
       }
-
+      console.log(date, new Date());
       if (isSameDay(date, new Date())) {
         const parsedTime = format(addHours(new Date(), 2), "HH:mm");
+        console.log(
+          parsedTime,
+          format(new Date(), "HH:mm") > "22:00",
+          parsedTime > startTime
+        );
         if (format(new Date(), "HH:mm") > "22:00" || parsedTime > startTime) {
           throw new Error(
             "Só é permitidos reservar aulas com 2 horas de antecedência"
