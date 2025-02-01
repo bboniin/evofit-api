@@ -12,7 +12,6 @@ import {
 import api from "../../config/api";
 import prismaClient from "../../prisma";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface OrderRequest {
   spaceId: string;
@@ -78,25 +77,11 @@ class CreateOrderService {
         throw new Error("Data e horários de inicio e fim são obrigatórios");
       }
 
-      const dateNow = new Date();
+      const dateNow = addHours(new Date(), -3);
 
-      console.warn(
-        3,
-        format(dateNow, "dd/MM/yyyy HH:mm"),
-        format(dateNow, "dd/MM/yyyy HH:mm", { locale: ptBR })
-      );
-      console.warn(1, date, dateNow);
-      if (isSameDay(date, new Date())) {
-        const parsedTime = format(addHours(new Date(), 2), "HH:mm", {
-          locale: ptBR,
-        });
-        console.warn(
-          2,
-          parsedTime,
-          format(new Date(), "HH:mm") > "22:00",
-          parsedTime > startTime
-        );
-        if (format(new Date(), "HH:mm") > "22:00" || parsedTime > startTime) {
+      if (isSameDay(date, dateNow)) {
+        const parsedTime = format(addHours(dateNow, 2), "HH:mm");
+        if (format(dateNow, "HH:mm") > "22:00" || parsedTime > startTime) {
           throw new Error(
             "Só é permitidos reservar aulas com 2 horas de antecedência"
           );
