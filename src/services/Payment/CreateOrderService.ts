@@ -76,10 +76,11 @@ class CreateOrderService {
       if (!startTime || !date || !endTime) {
         throw new Error("Data e horários de inicio e fim são obrigatórios");
       }
-      console.log(date, new Date());
+      console.warn(1, date, new Date());
       if (isSameDay(date, new Date())) {
         const parsedTime = format(addHours(new Date(), 2), "HH:mm");
-        console.log(
+        console.warn(
+          2,
           parsedTime,
           format(new Date(), "HH:mm") > "22:00",
           parsedTime > startTime
