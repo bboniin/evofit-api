@@ -12,6 +12,7 @@ import {
 import api from "../../config/api";
 import prismaClient from "../../prisma";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface OrderRequest {
   spaceId: string;
@@ -76,9 +77,19 @@ class CreateOrderService {
       if (!startTime || !date || !endTime) {
         throw new Error("Data e horários de inicio e fim são obrigatórios");
       }
-      console.warn(1, date, new Date());
+
+      const dateNow = new Date();
+
+      console.warn(
+        3,
+        format(dateNow, "dd/MM/yyyy HH:mm"),
+        format(dateNow, "dd/MM/yyyy HH:mm", { locale: ptBR })
+      );
+      console.warn(1, date, dateNow);
       if (isSameDay(date, new Date())) {
-        const parsedTime = format(addHours(new Date(), 2), "HH:mm");
+        const parsedTime = format(addHours(new Date(), 2), "HH:mm", {
+          locale: ptBR,
+        });
         console.warn(
           2,
           parsedTime,
