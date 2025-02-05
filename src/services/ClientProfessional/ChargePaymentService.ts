@@ -115,7 +115,7 @@ class ChargePaymentService {
               data: {
                 description: "Mensalidade",
                 professionalId: client.professionalId,
-                clientId: client.id,
+                clientId: client.clientId,
                 type: "recurring",
                 value: valueClientAll / 100,
                 rate: (valuePaid - valueClientAll) / 100,
@@ -133,8 +133,8 @@ class ChargePaymentService {
               },
             });
           })
-          .catch((e) => {
-            throw new Error("Ocorreu um erro ao criar cobrança");
+          .catch((error) => {
+            console.log(error.response.data);
           });
       })
     );

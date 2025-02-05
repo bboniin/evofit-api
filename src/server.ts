@@ -53,7 +53,7 @@ cron.schedule("1 0 * * *", () => {
   expireNotificationsService.execute();
 });
 
-cron.schedule("0 0 * * *", () => {
+cron.schedule("37 19 * * *", () => {
   const chargePaymentService = new ChargePaymentService();
   chargePaymentService.execute();
 });
@@ -115,5 +115,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(3333, () => {
-  console.log(`rodando v1.0.56`);
+  console.log(`rodando v1.0.57`);
 });

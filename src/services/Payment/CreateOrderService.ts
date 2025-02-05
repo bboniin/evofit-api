@@ -77,7 +77,7 @@ class CreateOrderService {
         throw new Error("Data e horários de inicio e fim são obrigatórios");
       }
 
-      const dateNow = addHours(new Date(), -3);
+      const dateNow = new Date();
 
       if (isSameDay(date, dateNow)) {
         const parsedTime = format(addHours(dateNow, 2), "HH:mm");
