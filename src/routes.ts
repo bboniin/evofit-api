@@ -78,6 +78,7 @@ import { ClientHistoricDiariesController } from "./controllers/Diary/ClientHisto
 import { BuyConsultancyController } from "./controllers/ClientProfessional/BuyConsultancyController";
 import { GetBookingController } from "./controllers/Booking/GetBookingController";
 import { AdminDeleteUserController } from "./controllers/User/AdminDeleteUserController";
+import { GetStatusPaymentsController } from "./controllers/Payment/GetStatusPaymentsController";
 
 const upload = multer(uploadConfig);
 
@@ -282,5 +283,7 @@ router.get("/notifications", new ListNotificationsController().handle);
 router.put("/notifications", new OpenNotificationsController().handle);
 
 router.get("/booking/:bookingId", new GetBookingController().handle);
+
+router.get("/status/payments", new GetStatusPaymentsController().handle);
 
 export { router };

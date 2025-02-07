@@ -1,4 +1,4 @@
-import { getDate } from "date-fns";
+import { addDays, format, isBefore, isEqual, startOfDay } from "date-fns";
 import { getValue, validateEmail } from "../../config/functions";
 import prismaClient from "../../prisma";
 import * as OneSignal from "onesignal-node";
@@ -10,7 +10,7 @@ interface ClientRequest {
   email: string;
   professionalId: string;
   value: number;
-  dayDue: number;
+  dateNextPayment: Date;
   billingPeriod: string;
   consultancy: boolean;
   schedule: Array<{
@@ -28,7 +28,7 @@ class EditClientProfessionalService {
     value,
     email,
     professionalId,
-    dayDue,
+    dateNextPayment,
     billingPeriod,
     schedule,
     consultancy,
@@ -39,8 +39,8 @@ class EditClientProfessionalService {
       (!consultancy && !spaceId) ||
       !value ||
       !email ||
-      !dayDue ||
-      !schedule.length
+      !dateNextPayment ||
+      (!consultancy && !schedule.length)
     ) {
       throw new Error("Todos os campos são obrigatórios");
     }
@@ -50,7 +50,8 @@ class EditClientProfessionalService {
       email: email,
       spaceId: !consultancy ? spaceId : null,
       value: value,
-      dayDue: dayDue,
+      dateNextPayment: startOfDay(dateNextPayment),
+      dayDue: new Date(dateNextPayment).getDate(),
       billingPeriod: billingPeriod || "monthly",
       consultancy: consultancy,
     };
@@ -64,6 +65,17 @@ class EditClientProfessionalService {
 
     if (!clientAlreadyExists) {
       throw new Error("Cliente não encontrado");
+    }
+
+    if (
+      isBefore(startOfDay(dateNextPayment), addDays(startOfDay(new Date()), 1))
+    ) {
+      throw new Error(
+        `Data minima para próxima cobrança é ${format(
+          addDays(new Date(), 1),
+          "dd/MM/yyyy"
+        )}`
+      );
     }
 
     if (
@@ -121,12 +133,6 @@ class EditClientProfessionalService {
       }
     }
 
-    const day = getDate(new Date());
-
-    if (dayDue != clientAlreadyExists.dayDue && dayDue >= day) {
-      data["status"] = "active";
-    }
-
     const clientProfessional = await prismaClient.clientsProfessional.update({
       where: {
         id: clientId,
@@ -171,29 +177,36 @@ class EditClientProfessionalService {
 
         await prismaClient.notification.create({
           data: {
-            title: "Data de Vencimento Alterada",
-            message: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
-              clientProfessional.dayDue
-            }`,
+            title: "Valor da Mensalidade Alterado",
+            message: `${clientProfessional.professional.name.toUpperCase()} alterou o valor da mensalidade para ${getValue(
+              clientProfessional.value
+            )}`,
             type: "ClientSchedule",
             dataId: clientProfessional.id,
             userId: clientProfessional.clientId,
           },
         });
       }
-      if (clientProfessional.dayDue != clientAlreadyExists.dayDue) {
+      if (
+        !isEqual(
+          startOfDay(clientProfessional.dateNextPayment),
+          startOfDay(clientAlreadyExists.dateNextPayment)
+        )
+      ) {
         await client.createNotification({
           headings: {
-            en: "Data de Vencimento Alterada",
-            pt: "Data de Vencimento Alterada",
+            en: "Data de pagamento",
+            pt: "Data de pagamento",
           },
           contents: {
-            en: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
-              clientProfessional.dayDue
-            }`,
-            pt: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
-              clientProfessional.dayDue
-            }`,
+            en: `${clientProfessional.professional.name.toUpperCase()} alterou a data de vencimento do seu próximo pagamento para ${format(
+              clientProfessional.dateNextPayment,
+              "dd//MM/yyyy"
+            )}`,
+            pt: `${clientProfessional.professional.name.toUpperCase()} alterou a data de vencimento do seu próximo pagamento para ${format(
+              clientProfessional.dateNextPayment,
+              "dd//MM/yyyy"
+            )}`,
           },
           data: {
             screen: "ClientSchedule",
@@ -206,10 +219,11 @@ class EditClientProfessionalService {
 
         await prismaClient.notification.create({
           data: {
-            title: "Data de Vencimento Alterada",
-            message: `${clientProfessional.professional.name.toUpperCase()} alterou seu vencimento mensal para o dia ${
-              clientProfessional.dayDue
-            }`,
+            title: "Data de pagamento",
+            message: `${clientProfessional.professional.name.toUpperCase()} alterou a data de vencimento do seu próximo pagamento para ${format(
+              clientProfessional.dateNextPayment,
+              "dd//MM/yyyy"
+            )}`,
             type: "ClientSchedule",
             dataId: clientProfessional.id,
             userId: clientProfessional.clientId,

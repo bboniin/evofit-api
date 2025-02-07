@@ -1,16 +1,27 @@
-import * as OneSignal from "onesignal-node";
 import prismaClient from "../../prisma";
-import { addDays, getDate } from "date-fns";
+import { addDays, addMonths, addYears, endOfDay, startOfDay } from "date-fns";
 import api from "../../config/api";
 
 class ChargePaymentService {
   async execute() {
-    const day = getDate(new Date());
+    const date = new Date();
 
     const clients = await prismaClient.clientsProfessional.findMany({
       where: {
-        dayDue: day + 1,
-        status: "active",
+        AND: [
+          {
+            dateNextPayment: { gte: startOfDay(addDays(date, -1)) },
+          },
+          {
+            dateNextPayment: { lte: endOfDay(addDays(date, 1)) },
+          },
+        ],
+        clientId: {
+          not: null,
+        },
+        status: {
+          not: "cancelled",
+        },
       },
       include: {
         professional: true,
@@ -24,7 +35,14 @@ class ChargePaymentService {
 
     await prismaClient.clientsProfessional.updateMany({
       where: {
-        dayDue: day - 1,
+        AND: [
+          {
+            dateLastCharge: { gte: startOfDay(addDays(date, -1)) },
+          },
+          {
+            dateLastCharge: { lte: endOfDay(addDays(date, -1)) },
+          },
+        ],
         status: "awaiting_payment",
       },
       data: {
@@ -34,7 +52,14 @@ class ChargePaymentService {
 
     await prismaClient.clientsProfessional.updateMany({
       where: {
-        dayDue: day + 1,
+        AND: [
+          {
+            dateNextPayment: { gte: startOfDay(addDays(date, 1)) },
+          },
+          {
+            dateNextPayment: { lte: endOfDay(addDays(date, 1)) },
+          },
+        ],
         status: "active",
       },
       data: {
@@ -77,7 +102,7 @@ class ChargePaymentService {
               {
                 payment_method: "pix",
                 pix: {
-                  expires_in: 259200,
+                  expires_at: addYears(date, 1),
                   additional_information: [
                     {
                       name: "information",
@@ -116,11 +141,13 @@ class ChargePaymentService {
                 description: "Mensalidade",
                 professionalId: client.professionalId,
                 clientId: client.clientId,
+                clientProfessionalId: client.id,
+                recurring: true,
                 type: "recurring",
                 value: valueClientAll / 100,
                 rate: (valuePaid - valueClientAll) / 100,
                 orderId: response.data.id,
-                expireAt: addDays(new Date(), 3),
+                expireAt: addDays(date, 3),
                 items: {
                   create: [
                     {
@@ -130,6 +157,23 @@ class ChargePaymentService {
                     },
                   ],
                 },
+              },
+            });
+
+            await prismaClient.clientsProfessional.update({
+              where: {
+                id: client.id,
+              },
+              data: {
+                dateLastCharge: date,
+                dateNextPayment: addMonths(
+                  date.setDate(client.dayDue),
+                  client.billingPeriod == "monthly"
+                    ? 1
+                    : client.billingPeriod == "quarterly"
+                    ? 3
+                    : 6
+                ),
               },
             });
           })

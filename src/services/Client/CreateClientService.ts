@@ -3,7 +3,14 @@ import prismaClient from "../../prisma";
 import { sign } from "jsonwebtoken";
 import authConfig from "../../utils/auth";
 import api from "../../config/api";
-import { addDays, getDate } from "date-fns";
+import {
+  addDays,
+  addYears,
+  getDate,
+  isBefore,
+  isEqual,
+  startOfDay,
+} from "date-fns";
 import {
   validateCpf,
   validateEmail,
@@ -131,7 +138,16 @@ class CreateClientService {
       },
     });
 
-    const day = getDate(new Date());
+    const getStatus = (dateNextPayment) => {
+      const today = startOfDay(new Date());
+      const tomorrow = addDays(today, 1);
+      const paymentDate = startOfDay(dateNextPayment);
+
+      if (isBefore(paymentDate, today)) return "overdue"; // Data já passou
+      if (isEqual(paymentDate, today) || isEqual(paymentDate, tomorrow))
+        return "awaiting_payment"; // Hoje ou amanhã
+      return "active"; // Data futura
+    };
 
     await Promise.all(
       clients.map(async (item) => {
@@ -141,12 +157,7 @@ class CreateClientService {
           },
           data: {
             clientId: user.id,
-            status:
-              day == item.dayDue || day + 1 == item.dayDue
-                ? "awaiting_payment"
-                : item.dayDue > day
-                ? "overdue"
-                : "active",
+            status: getStatus(item.dateNextPayment),
           },
           include: {
             client: {
@@ -158,7 +169,7 @@ class CreateClientService {
           },
         });
 
-        if (item.dayDue >= day + 1) {
+        if (clientUp.status != "active") {
           const valueClientAll = clientUp.value * 100;
           const valuePaid = valueClientAll * 1.012;
 
@@ -192,7 +203,7 @@ class CreateClientService {
                 {
                   payment_method: "pix",
                   pix: {
-                    expires_in: 259200,
+                    expires_at: addYears(new Date(), 1),
                     additional_information: [
                       {
                         name: "information",
@@ -233,6 +244,7 @@ class CreateClientService {
                   }`,
                   professionalId: clientUp.professionalId,
                   clientId: client.id,
+                  clientProfessionalId: item.id,
                   recurring: true,
                   type: "recurring",
                   value: valueClientAll / 100,

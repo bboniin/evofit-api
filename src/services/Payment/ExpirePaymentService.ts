@@ -1,25 +1,36 @@
 import * as OneSignal from "onesignal-node";
 import prismaClient from "../../prisma";
+import { addMinutes, isAfter } from "date-fns";
 
 class ExpirePaymentService {
   async execute() {
+    const date = new Date();
+
     const payments = await prismaClient.payment.findMany({
       where: {
         expireAt: {
-          lte: new Date(),
+          lte: date,
         },
         status: "awaiting_payment",
       },
       include: {
         items: true,
+        professional: true,
+        client: true,
       },
     });
 
     await prismaClient.payment.updateMany({
       where: {
+        NOT: {
+          description: {
+            contains: "Mensalidade",
+            mode: "insensitive",
+          },
+        },
         AND: {
           expireAt: {
-            lte: new Date(),
+            lte: date,
           },
           status: "awaiting_payment",
         },
@@ -37,36 +48,7 @@ class ExpirePaymentService {
     payments.map(async (payment) => {
       const type =
         payment.items.length == 2 ? "multiple" : payment.items[0].type;
-
       if (type == "recurring") {
-        await client.createNotification({
-          headings: {
-            en: "Mensalidade cancelada",
-            pt: "Mensalidade cancelada",
-          },
-          contents: {
-            en: "Pagamento cancelado, entre em contato com o profissional para ficar em dia",
-            pt: "Pagamento cancelado, entre em contato com o profissional para ficar em dia",
-          },
-          data: {
-            screen: "PaymentClient",
-            params: {
-              id: payment.id,
-            },
-          },
-          include_external_user_ids: [payment.clientId],
-        });
-        await prismaClient.notification.create({
-          data: {
-            title: "Mensalidade cancelada",
-            message:
-              "Pagamento cancelado, entre em contato com o profissional para ficar em dia",
-            type: "PaymentClient",
-            dataId: payment.id,
-            userId: payment.clientId,
-          },
-        });
-
         if (payment.description == "Adesão Consultoria") {
           await prismaClient.clientsProfessional.update({
             where: {

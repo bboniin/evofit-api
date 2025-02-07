@@ -9,7 +9,7 @@ class CreateClientProfessionalController {
       email,
       spaceId,
       value,
-      dayDue,
+      dateNextPayment,
       consultancy,
       schedule,
       billingPeriod,
@@ -28,7 +28,7 @@ class CreateClientProfessionalController {
       spaceId,
       consultancy,
       value,
-      dayDue,
+      dateNextPayment,
       schedule,
       billingPeriod,
     });

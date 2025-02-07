@@ -61,28 +61,41 @@ class ConfirmPaymentService {
     const type = payment.items.length == 2 ? "multiple" : payment.items[0].type;
 
     if (type == "recurring") {
-      await prismaClient.clientsProfessional.update({
+      const payments = await prismaClient.payment.findFirst({
         where: {
-          professionalId_clientId: {
-            professionalId: payment.professionalId,
-            clientId: payment.clientId,
+          clientProfessionalId: payment.clientProfessionalId,
+          status: {
+            not: "paid",
           },
-        },
-        data: {
-          status: "active",
-          visible: true,
+          type: "recurring",
+          recurring: true,
         },
       });
+      if (!payments) {
+        await prismaClient.clientsProfessional.update({
+          where: {
+            professionalId_clientId: {
+              professionalId: payment.professionalId,
+              clientId: payment.clientId,
+            },
+          },
+          data: {
+            status: "active",
+            visible: true,
+          },
+        });
+      }
+
       await sendNotification(
-        "Pagamento confirmado",
-        `Pagamento realizado com sucesso`,
+        "Aviso!",
+        `Pagamento da mensalidade confirmado`,
         payment.clientId,
         payment,
         "client"
       );
       await sendNotification(
-        "Pagamento confirmado",
-        `${payment.client.name.toUpperCase()} pagou a mensalidade`,
+        "Aviso!",
+        `Pagamento recebido de ${payment.client.name.toUpperCase()} 💰`,
         payment.professionalId,
         payment,
         "professional"

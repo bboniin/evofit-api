@@ -1,29 +1,49 @@
 import * as OneSignal from "onesignal-node";
 import prismaClient from "../../prisma";
-import { getDate } from "date-fns";
+import { addDays, endOfDay, getDate, startOfDay } from "date-fns";
 
 class NotificationPaymentService {
   async execute() {
-    const day = getDate(new Date());
-
-    const clientsDayAfter = await prismaClient.clientsProfessional.findMany({
-      where: {
-        dayDue: day - 1,
-        status: "awaiting_payment",
-      },
-    });
-
-    const clientsToday = await prismaClient.clientsProfessional.findMany({
-      where: {
-        dayDue: day,
-        status: "awaiting_payment",
-      },
-    });
+    const date = new Date();
 
     const clientOneSignal = new OneSignal.Client(
       "15ee78c4-6dab-4cb5-a606-1bb5b12170e1",
       "OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw"
     );
+
+    const clientsDayAfter = await prismaClient.clientsProfessional.findMany({
+      where: {
+        AND: [
+          {
+            dateLastCharge: { gte: startOfDay(date) },
+          },
+          {
+            dateLastCharge: { lte: endOfDay(date) },
+          },
+        ],
+        status: "awaiting_payment",
+      },
+      include: {
+        professional: true,
+      },
+    });
+
+    const clientsToday = await prismaClient.clientsProfessional.findMany({
+      where: {
+        AND: [
+          {
+            dateLastCharge: { gte: startOfDay(addDays(date, -1)) },
+          },
+          {
+            dateLastCharge: { lte: endOfDay(addDays(date, -1)) },
+          },
+        ],
+        status: "awaiting_payment",
+      },
+      include: {
+        professional: true,
+      },
+    });
 
     await Promise.all(
       clientsDayAfter.map(async (client) => {
@@ -36,33 +56,35 @@ class NotificationPaymentService {
           },
         });
 
-        await clientOneSignal.createNotification({
-          headings: {
-            en: "Mensalidade pendente",
-            pt: "Mensalidade pendente",
-          },
-          contents: {
-            en: "Sua mensalidade vence amanhã",
-            pt: "Sua mensalidade vence amanhã",
-          },
-          data: {
-            screen: "PaymentClient",
-            params: {
-              id: payment.id,
+        if (payment) {
+          await clientOneSignal.createNotification({
+            headings: {
+              en: "Lembrete!",
+              pt: "Lembrete!",
             },
-          },
-          include_external_user_ids: [client.clientId],
-        });
+            contents: {
+              en: `Seu pagamento para ${client.professional.name.toUpperCase()} vence AMANHÃ.`,
+              pt: `Seu pagamento para ${client.professional.name.toUpperCase()} vence AMANHÃ.`,
+            },
+            data: {
+              screen: "PaymentClient",
+              params: {
+                id: payment.id,
+              },
+            },
+            include_external_user_ids: [client.clientId],
+          });
 
-        await prismaClient.notification.create({
-          data: {
-            title: "Mensalidade pendente",
-            message: "Sua mensalidade vence amanhã",
-            type: "PaymentClient",
-            dataId: payment.id,
-            userId: client.clientId,
-          },
-        });
+          await prismaClient.notification.create({
+            data: {
+              title: "Lembrete!",
+              message: `Seu pagamento para ${client.professional.name.toUpperCase()} vence AMANHÃ.`,
+              type: "PaymentClient",
+              dataId: payment.id,
+              userId: client.clientId,
+            },
+          });
+        }
       })
     );
 
@@ -77,39 +99,51 @@ class NotificationPaymentService {
           },
         });
 
-        await clientOneSignal.createNotification({
-          headings: {
-            en: "Mensalidade vence hoje",
-            pt: "Mensalidade vence hoje",
-          },
-          contents: {
-            en: "Efetue o pagamento para evitar cancelamento",
-            pt: "Efetue o pagamento para evitar cancelamento",
-          },
-          data: {
-            screen: "PaymentClient",
-            params: {
-              id: payment.id,
+        if (payment) {
+          await clientOneSignal.createNotification({
+            headings: {
+              en: "Aviso!",
+              pt: "Aviso!",
             },
-          },
-          include_external_user_ids: [client.clientId],
-        });
-        await prismaClient.notification.create({
-          data: {
-            title: "Mensalidade vence hoje",
-            message: "Efetue o pagamento para evitar cancelamento",
-            type: "PaymentClient",
-            dataId: payment.id,
-            userId: client.clientId,
-          },
-        });
+            contents: {
+              en: `Seu pagamento para ${client.professional.name.toUpperCase()} vence HOJE.`,
+              pt: `Seu pagamento para ${client.professional.name.toUpperCase()} vence HOJE.`,
+            },
+            data: {
+              screen: "PaymentClient",
+              params: {
+                id: payment.id,
+              },
+            },
+            include_external_user_ids: [client.clientId],
+          });
+          await prismaClient.notification.create({
+            data: {
+              title: "Aviso!",
+              message: `Seu pagamento para ${client.professional.name.toUpperCase()} vence HOJE.`,
+              type: "PaymentClient",
+              dataId: payment.id,
+              userId: client.clientId,
+            },
+          });
+        }
       })
     );
 
     const clientsOverdue = await prismaClient.clientsProfessional.findMany({
       where: {
-        dayDue: day - 1,
+        AND: [
+          {
+            dateLastCharge: { gte: startOfDay(addDays(date, -2)) },
+          },
+          {
+            dateLastCharge: { lte: endOfDay(addDays(date, -2)) },
+          },
+        ],
         status: "overdue",
+      },
+      include: {
+        professional: true,
       },
     });
 
@@ -124,32 +158,34 @@ class NotificationPaymentService {
           },
         });
 
-        await clientOneSignal.createNotification({
-          headings: {
-            en: "Mensalidade está atrasada",
-            pt: "Mensalidade está atrasada",
-          },
-          contents: {
-            en: "Efetue o pagamento para evitar cancelamento",
-            pt: "Efetue o pagamento para evitar cancelamento",
-          },
-          data: {
-            screen: "PaymentClient",
-            params: {
-              id: payment.id,
+        if (payment) {
+          await clientOneSignal.createNotification({
+            headings: {
+              en: "Aviso!",
+              pt: "Aviso!",
             },
-          },
-          include_external_user_ids: [client.clientId],
-        });
-        await prismaClient.notification.create({
-          data: {
-            title: "Mensalidade está atrasada",
-            message: "Efetue o pagamento para evitar cancelamento",
-            type: "PaymentClient",
-            dataId: payment.id,
-            userId: client.clientId,
-          },
-        });
+            contents: {
+              en: `Seu pagamento para ${client.professional.name.toUpperCase()} está ATRASADO. 🚨`,
+              pt: `Seu pagamento para ${client.professional.name.toUpperCase()} está ATRASADO. 🚨`,
+            },
+            data: {
+              screen: "PaymentClient",
+              params: {
+                id: payment.id,
+              },
+            },
+            include_external_user_ids: [client.clientId],
+          });
+          await prismaClient.notification.create({
+            data: {
+              title: "Mensalidade está atrasada",
+              message: `Seu pagamento para ${client.professional.name.toUpperCase()} está ATRASADO. 🚨`,
+              type: "PaymentClient",
+              dataId: payment.id,
+              userId: client.clientId,
+            },
+          });
+        }
       })
     );
   }

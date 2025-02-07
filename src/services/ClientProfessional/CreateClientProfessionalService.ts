@@ -1,4 +1,13 @@
-import { addDays, differenceInSeconds, getDate } from "date-fns";
+import {
+  addDays,
+  addYears,
+  differenceInSeconds,
+  getDate,
+  isAfter,
+  isBefore,
+  isEqual,
+  startOfDay,
+} from "date-fns";
 import * as OneSignal from "onesignal-node";
 import api from "../../config/api";
 import prismaClient from "../../prisma";
@@ -10,7 +19,7 @@ interface ClientRequest {
   email: string;
   spaceId: string;
   value: number;
-  dayDue: number;
+  dateNextPayment: Date;
   consultancy: boolean;
   billingPeriod: string;
   professionalId: string;
@@ -30,7 +39,7 @@ class CreateClientProfessionalService {
     consultancy,
     spaceId,
     value,
-    dayDue,
+    dateNextPayment,
     billingPeriod,
     schedule,
   }: ClientRequest) {
@@ -40,7 +49,7 @@ class CreateClientProfessionalService {
       !professionalId ||
       (!consultancy && !spaceId) ||
       !value ||
-      !dayDue ||
+      !dateNextPayment ||
       !email ||
       (!consultancy && !schedule.length)
     ) {
@@ -69,7 +78,8 @@ class CreateClientProfessionalService {
       professionalId: professionalId,
       consultancy: consultancy,
       billingPeriod: billingPeriod || "monthly",
-      dayDue: dayDue,
+      dateNextPayment: startOfDay(dateNextPayment),
+      dayDue: new Date(dateNextPayment).getDate(),
     };
 
     const userAlreadyExists = await prismaClient.user.findFirst({
@@ -96,8 +106,6 @@ class CreateClientProfessionalService {
     if (!professional) {
       throw new Error("Profissional não encontrado");
     }
-
-    const day = getDate(new Date());
 
     if (userAlreadyExists) {
       throw new Error("Email já está sendo usado por outro tipo de usuário");
@@ -132,14 +140,23 @@ class CreateClientProfessionalService {
       }
     }
 
+    const getStatus = (clientId, dateNextPayment) => {
+      if (!clientId) return "registration_pending";
+
+      const today = startOfDay(new Date());
+      const tomorrow = addDays(today, 1);
+      const paymentDate = startOfDay(dateNextPayment);
+
+      if (isBefore(paymentDate, today)) return "overdue"; // Data já passou
+      if (isEqual(paymentDate, today) || isEqual(paymentDate, tomorrow))
+        return "awaiting_payment"; // Hoje ou amanhã
+      return "active"; // Data futura
+    };
+
     const clientProfessional = await prismaClient.clientsProfessional.create({
       data: {
         ...data,
-        status: data["clientId"]
-          ? dayDue > day
-            ? "overdue"
-            : "active"
-          : "registration_pending",
+        status: getStatus(data["clientId"], dateNextPayment),
       },
       include: {
         client: {
@@ -171,7 +188,7 @@ class CreateClientProfessionalService {
       });
     }
 
-    if (data["clientId"]) {
+    if (clientProfessional.clientId) {
       const client = new OneSignal.Client(
         "15ee78c4-6dab-4cb5-a606-1bb5b12170e1",
         "OTkyODZmZmQtODQ4Ni00OWRhLWFkYmMtNDE2MDllMjgyNzQw"
@@ -205,7 +222,7 @@ class CreateClientProfessionalService {
         },
       });
 
-      if (clientProfessional.dayDue >= day + 1) {
+      if (clientProfessional.status != "active") {
         await api
           .post("/orders", {
             closed: true,
@@ -236,10 +253,7 @@ class CreateClientProfessionalService {
               {
                 payment_method: "pix",
                 pix: {
-                  expires_in: differenceInSeconds(
-                    addDays(new Date(), 5),
-                    new Date()
-                  ),
+                  expires_at: addYears(new Date(), 1),
                   additional_information: [
                     {
                       name: "information",
@@ -280,6 +294,7 @@ class CreateClientProfessionalService {
                 }`,
                 professionalId: professionalId,
                 clientId: clientProfessional.client.id,
+                clientProfessionalId: clientProfessional.id,
                 rate: (valuePaid - valueClientAll) / 100,
                 recurring: true,
                 type: "recurring",
@@ -300,7 +315,7 @@ class CreateClientProfessionalService {
 
             return order;
           })
-          .catch((e) => {
+          .catch((error) => {
             throw new Error("Ocorreu um erro ao criar cobrança");
           });
       }

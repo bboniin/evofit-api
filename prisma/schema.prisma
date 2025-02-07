@@ -279,9 +279,11 @@ model ClientsProfessional {
   phoneNumber             String  
   name                    String  
   status                  Status
-  initConsultancy         Boolean                     @default(false)                    
-  dayDue                  Int                         @default(1)
+  initConsultancy         Boolean                     @default(false)   
   datePayment             DateTime                    @default(now()) 
+  dateLastCharge          DateTime                    @default(now())                     
+  dayDue                  Int                         @default(1)
+  dateNextPayment         DateTime                    @default(now()) 
   consultancy             Boolean                      
   spaceId                 String?  
   value                   Float         

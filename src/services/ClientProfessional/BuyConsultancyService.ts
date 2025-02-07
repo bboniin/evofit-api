@@ -1,4 +1,4 @@
-import { addDays, differenceInSeconds, getDate } from "date-fns";
+import { addDays, addMonths, differenceInSeconds, getDate } from "date-fns";
 import api from "../../config/api";
 import prismaClient from "../../prisma";
 
@@ -129,11 +129,29 @@ class BuyConsultancyService {
         ],
       })
       .then(async (response) => {
+        const dateNextPayment = addMonths(addDays(new Date(), 5), 1);
+
+        const clientProfessional =
+          await prismaClient.clientsProfessional.create({
+            data: {
+              name: user.client.name,
+              email: user.email,
+              phoneNumber: user.client.phoneNumber,
+              value: professional.valueConsultancy,
+              professionalId: professionalId,
+              clientId: user.id,
+              billingPeriod: "monthly",
+              consultancy: true,
+              dateNextPayment: dateNextPayment,
+              status: "awaiting_payment",
+            },
+          });
         order = await prismaClient.payment.create({
           data: {
             description: `Adesão Consultoria`,
             professionalId: professionalId,
             clientId: user.client.id,
+            clientProfessionalId: clientProfessional.id,
             rate: (valuePaid - valueClientAll) / 100,
             recurring: true,
             type: "recurring",
@@ -149,23 +167,6 @@ class BuyConsultancyService {
                 },
               ],
             },
-          },
-        });
-
-        const day = getDate(new Date()) + 5;
-
-        await prismaClient.clientsProfessional.create({
-          data: {
-            name: user.client.name,
-            email: user.email,
-            phoneNumber: user.client.phoneNumber,
-            value: professional.valueConsultancy,
-            professionalId: professionalId,
-            clientId: user.id,
-            billingPeriod: "monthly",
-            consultancy: true,
-            dayDue: day > 28 ? day - 28 : day,
-            status: "awaiting_payment",
           },
         });
       })
