@@ -140,7 +140,7 @@ class BuyConsultancyService {
               value: professional.valueConsultancy,
               professionalId: professionalId,
               clientId: user.id,
-              billingPeriod: "monthly",
+              billingPeriod: professional.periodConsultancy,
               consultancy: true,
               dateNextPayment: dateNextPayment,
               status: "awaiting_payment",

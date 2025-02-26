@@ -19,7 +19,7 @@ class SendNotificationsService {
           isDeleted: false,
         },
       });
-
+      /*
       Promise.all(
         clients.map(async (item) => {
           await client.createNotification({
@@ -45,7 +45,7 @@ class SendNotificationsService {
           });
         })
       );
-
+*/
       const professionals = await prismaClient.professional.findMany({
         where: {
           isDeleted: false,
@@ -62,7 +62,7 @@ class SendNotificationsService {
           ],
         },
       });
-
+      /*
       Promise.all(
         professionals.map(async (item) => {
           await client.createNotification({
@@ -88,7 +88,7 @@ class SendNotificationsService {
             },
           });
         })
-      );
+      );*/
 
       const spaces = await prismaClient.space.findMany({
         where: {
@@ -107,7 +107,7 @@ class SendNotificationsService {
           ],
         },
       });
-
+      /*
       Promise.all(
         spaces.map(async (item) => {
           await client.createNotification({
@@ -133,7 +133,7 @@ class SendNotificationsService {
             },
           });
         })
-      );
+      );*/
     } else {
       const professionals = await prismaClient.professional.findMany({
         where: {
@@ -147,7 +147,7 @@ class SendNotificationsService {
           isDeleted: false,
         },
       });
-
+      /*
       Promise.all(
         professionals.map(async (item) => {
           if (Math.random() < 0.65) {
@@ -175,7 +175,7 @@ class SendNotificationsService {
             });
           }
         })
-      );
+      );*/
     }
   }
 }

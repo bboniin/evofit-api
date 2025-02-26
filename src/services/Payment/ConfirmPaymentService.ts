@@ -111,8 +111,8 @@ class ConfirmPaymentService {
         );
 
         await sendNotification(
-          "Pagamento confirmado",
-          `${payment.client.name.toUpperCase()} confirmou sua reserva`,
+          "Novo Agendamento!",
+          `${payment.client.name.toUpperCase()} 03/08 as 15:30`,
           payment.professionalId,
           payment,
           "professional"
@@ -136,8 +136,8 @@ class ConfirmPaymentService {
           );
 
           await sendNotification(
-            "Pagamento confirmado",
-            `${payment.client.name.toUpperCase()} confirmou suas diárias`,
+            "Novo Agendamento!",
+            `${payment.client.name.toUpperCase()} 1x diárias`,
             payment.spaceId,
             payment,
             "space"
@@ -163,16 +163,16 @@ class ConfirmPaymentService {
           );
 
           await sendNotification(
-            "Pagamento confirmado",
-            `${payment.client.name.toUpperCase()} confirmou sua diária`,
+            "Novo Agendamento!",
+            `${payment.client.name.toUpperCase()} 1x diárias`,
             payment.spaceId,
             payment,
             "space"
           );
 
           await sendNotification(
-            "Pagamento confirmado",
-            `${payment.client.name.toUpperCase()} confirmou sua reserva`,
+            "Novo Agendamento!",
+            `${payment.client.name.toUpperCase()} 03/08 as 15:30`,
             payment.professionalId,
             payment,
             "professional"

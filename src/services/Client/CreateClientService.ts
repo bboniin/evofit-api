@@ -11,11 +11,7 @@ import {
   isEqual,
   startOfDay,
 } from "date-fns";
-import {
-  validateCpf,
-  validateEmail,
-  validatePhone,
-} from "../../config/functions";
+import { validateCpf, validateEmail } from "../../config/functions";
 
 interface ClientRequest {
   name: string;
@@ -40,16 +36,7 @@ class CreateClientService {
     experienceLevel,
     email,
   }: ClientRequest) {
-    if (
-      !name ||
-      !phoneNumber ||
-      !password ||
-      !cpf ||
-      !objective ||
-      !experienceLevel ||
-      !email ||
-      !birthday
-    ) {
+    if (!name || !password || !cpf || !email) {
       throw new Error("Preencha todos os campos obrigatórios");
     }
 
@@ -97,10 +84,6 @@ class CreateClientService {
 
     if (!validateEmail(email)) {
       throw new Error("Email inválido");
-    }
-
-    if (!validatePhone(phoneNumber)) {
-      throw new Error("Telefone inválido");
     }
 
     const passwordHash = await hash(password, 8);

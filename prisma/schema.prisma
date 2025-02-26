@@ -34,11 +34,11 @@ model Client {
   userId                 String?                      @unique
   name                   String
   cpf                    String
-  phoneNumber            String
+  phoneNumber            String?
   photo                  String?
-  objective              String                   
-  experienceLevel        String
-  birthday               DateTime
+  objective              String?                   
+  experienceLevel        String?
+  birthday               DateTime?
   user                   User?                        @relation(fields: [userId], references: [id], onDelete: SetNull)
   isDeleted              Boolean                      @default(false)
 
@@ -68,6 +68,7 @@ model Professional {
   photo                   String?
   birthday                DateTime      
   enableConsultancy       Boolean                     @default(false)
+  periodConsultancy       String                      @default("monthly")
   descriptionConsultancy  String?
   valueLesson             Float? 
   enableLesson            Boolean                     @default(false)

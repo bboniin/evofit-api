@@ -61,81 +61,31 @@ class CreatePaymentService {
       throw new Error("Pagamento não encontrado");
     }
 
-    if (type == "recurring") {
+    if (type == "lesson") {
       await sendNotification(
-        "Mensalidade Pendente",
-        "Efetue o pagamento da mensalidade",
+        "Pedido realizado",
+        "Efetue o pagamento para confirmar sua aula",
         payment.clientId,
         payment,
         "client"
       );
-      await sendNotification(
-        "Cobrança emitida",
-        `${payment.client.name.toUpperCase()} no valor de ${getValue(
-          payment.value
-        )}`,
-        payment.professionalId,
-        payment,
-        "professional"
-      );
     } else {
-      if (type == "lesson") {
+      if (type == "diary") {
         await sendNotification(
           "Pedido realizado",
-          "Efetue o pagamento para confirmar sua aula",
+          "Efetue o pagamento para confirmar suas diárias",
           payment.clientId,
           payment,
           "client"
         );
-
-        await sendNotification(
-          "Novo pedido",
-          `${payment.client.name.toUpperCase()} fez um pedido`,
-          payment.professionalId,
-          payment,
-          "professional"
-        );
       } else {
-        if (type == "diary") {
-          await sendNotification(
-            "Pedido realizado",
-            "Efetue o pagamento para confirmar suas diárias",
-            payment.clientId,
-            payment,
-            "client"
-          );
-
-          await sendNotification(
-            "Novo pedido",
-            `${payment.client.name.toUpperCase()} fez um pedido`,
-            payment.spaceId,
-            payment,
-            "space"
-          );
-        } else {
-          await sendNotification(
-            "Pedido realizado",
-            "Efetue o pagamento para confirmar sua aula e diária",
-            payment.clientId,
-            payment,
-            "client"
-          );
-
-          await sendNotification(
-            "Novo pedido",
-            `${payment.client.name.toUpperCase()} fez um pedido`,
-            payment.spaceId,
-            payment,
-            "space"
-          );
-          await sendNotification(
-            "Novo pedido",
-            `${payment.client.name.toUpperCase()} fez um pedido`,
-            payment.spaceId,
-            payment,
-            "space"
-          );
-        }
+        await sendNotification(
+          "Pedido realizado",
+          "Efetue o pagamento para confirmar sua aula e diária",
+          payment.clientId,
+          payment,
+          "client"
+        );
       }
     }
 
